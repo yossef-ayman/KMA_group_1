@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #faf7f2;
+    color: #292524;
+  }
+}
+
+/* Warm custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f3ece2;
+}
+::-webkit-scrollbar-thumb {
+  background: #d8cbba;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #bfaea0;
+}
+
+/* Warm Beige Glass & Card Styling */
+.beige-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(220, 205, 185, 0.6);
+}
+
+.beige-card {
+  background: #ffffff;
+  border: 1px solid #e7ddce;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px -2px rgba(120, 95, 65, 0.05);
+}
+
+.beige-card:hover {
+  border-color: #cbb497;
+  box-shadow: 0 12px 24px -6px rgba(120, 95, 65, 0.12);
+}
+
+.judicial-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #92400e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
