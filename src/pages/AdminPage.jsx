@@ -18,7 +18,14 @@ import {
   Search,
   Scale,
   Gavel,
-  BookOpen
+  BookOpen,
+  Calendar,
+  Mail,
+  Phone,
+  MapPin,
+  CheckCircle,
+  Clock,
+  Inbox
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 
@@ -40,8 +47,18 @@ export const AdminPage = () => {
     importDataJSON,
     editingCertId,
     setEditingCertId,
+    bookings,
+    deleteBooking,
+    updateBookingStatus,
     showToast
   } = usePortfolio();
+
+  const safeVal = (v) => {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'object') return v.ar || v.en || '';
+    return String(v);
+  };
 
   // Active tab in admin
   const [activeTab, setActiveTab] = useState('certificates');
@@ -75,15 +92,15 @@ export const AdminPage = () => {
       const target = data.certificates.find((c) => c.id === editingCertId);
       if (target) {
         setCertFormData({
-          title: target.title || '',
-          issuer: target.issuer || '',
-          issueDate: target.issueDate || '',
-          expiryDate: target.expiryDate || '',
-          credentialId: target.credentialId || '',
-          credentialUrl: target.credentialUrl || '',
-          imageUrl: target.imageUrl || '',
-          description: target.description || '',
-          skills: target.skills ? target.skills.join(', ') : '',
+          title: safeVal(target.title),
+          issuer: safeVal(target.issuer),
+          issueDate: safeVal(target.issueDate),
+          expiryDate: safeVal(target.expiryDate),
+          credentialId: safeVal(target.credentialId),
+          credentialUrl: safeVal(target.credentialUrl),
+          imageUrl: safeVal(target.imageUrl),
+          description: safeVal(target.description),
+          skills: target.skills ? target.skills.map((s) => safeVal(s)).join(', ') : '',
           featured: target.featured ?? true
         });
         setIsAddingCert(false);
@@ -105,7 +122,7 @@ export const AdminPage = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       setCertFormData((prev) => ({ ...prev, imageUrl: event.target.result }));
-      showToast('Judicial diploma document uploaded successfully!');
+      showToast('Document uploaded successfully!');
     };
     reader.readAsDataURL(file);
   };
@@ -115,13 +132,13 @@ export const AdminPage = () => {
     setCertFormData({
       title: '',
       issuer: '',
-      issueDate: 'October 2024',
-      expiryDate: 'Permanent Appointment',
+      issueDate: '2024',
+      expiryDate: 'Official Active License',
       credentialId: '',
       credentialUrl: '',
-      imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800',
+      imageUrl: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800',
       description: '',
-      skills: 'Commercial Arbitration, Civil Law, Judicial Ethics',
+      skills: 'Cinematography, Wedding Films, Color Grading, 4K Production',
       featured: true
     });
     setIsAddingCert(true);
@@ -169,10 +186,23 @@ export const AdminPage = () => {
   // ----------------------------------------------------
   // PROFILE STATE & UPLOAD
   // ----------------------------------------------------
-  const [profileForm, setProfileForm] = useState(data.profile);
+  const getSafeProfile = (prof) => ({
+    ...prof,
+    fullName: safeVal(prof?.fullName),
+    title: safeVal(prof?.title),
+    tagline: safeVal(prof?.tagline),
+    bio: safeVal(prof?.bio),
+    location: safeVal(prof?.location),
+    email: prof?.email || '',
+    phone: prof?.phone || '',
+    avatarUrl: prof?.avatarUrl || '',
+    stats: prof?.stats || []
+  });
+
+  const [profileForm, setProfileForm] = useState(() => getSafeProfile(data.profile));
 
   useEffect(() => {
-    setProfileForm(data.profile);
+    setProfileForm(getSafeProfile(data.profile));
   }, [data.profile]);
 
   const handleAvatarUpload = (e) => {
@@ -189,7 +219,7 @@ export const AdminPage = () => {
       const base64 = event.target.result;
       setProfileForm((prev) => ({ ...prev, avatarUrl: base64 }));
       updateProfile({ avatarUrl: base64 });
-      showToast('Judge portrait photo updated and saved!');
+      showToast('Studio logo / photo updated and saved!');
     };
     reader.readAsDataURL(file);
   };
@@ -200,7 +230,7 @@ export const AdminPage = () => {
   };
 
   // ----------------------------------------------------
-  // RULINGS / CASES FORM
+  // MEDIA PROJECTS & FILMS FORM
   // ----------------------------------------------------
   const [editingProjId, setEditingProjId] = useState(null);
   const [isAddingProj, setIsAddingProj] = useState(false);
@@ -218,10 +248,10 @@ export const AdminPage = () => {
     setProjFormData({
       title: '',
       description: '',
-      techStack: 'Commercial Law, Contractual Breach, Civil Precedent',
+      techStack: 'Cinematography, Wedding Film, 4K Drone, Color Grading',
       liveUrl: '',
       githubUrl: '',
-      imageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800'
+      imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
     });
     setIsAddingProj(true);
   };
@@ -230,9 +260,9 @@ export const AdminPage = () => {
     setEditingProjId(proj.id);
     setIsAddingProj(false);
     setProjFormData({
-      title: proj.title || '',
-      description: proj.description || '',
-      techStack: proj.techStack ? proj.techStack.join(', ') : '',
+      title: safeVal(proj.title),
+      description: safeVal(proj.description),
+      techStack: proj.techStack ? proj.techStack.map((s) => safeVal(s)).join(', ') : '',
       liveUrl: proj.liveUrl || '',
       githubUrl: proj.githubUrl || '',
       imageUrl: proj.imageUrl || ''
@@ -246,7 +276,7 @@ export const AdminPage = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       setProjFormData((prev) => ({ ...prev, imageUrl: event.target.result }));
-      showToast('Ruling document screenshot uploaded!');
+      showToast('Media image uploaded successfully!');
     };
     reader.readAsDataURL(file);
   };
@@ -254,7 +284,7 @@ export const AdminPage = () => {
   const handleSaveProject = (e) => {
     e.preventDefault();
     if (!projFormData.title.trim()) {
-      showToast('Ruling / Publication title is required.', 'error');
+      showToast('Project title is required.', 'error');
       return;
     }
 
@@ -317,13 +347,13 @@ export const AdminPage = () => {
               <div className="h-4 w-px bg-[#dfd2c0] hidden sm:block" />
               <div>
                 <h1 className="text-lg font-bold text-stone-900 flex items-center gap-2 judicial-heading">
-                  <span>Judicial Chambers Management Portal</span>
+                  <span>KMA Wedding & Media Production Management</span>
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
-                    Judge Portal
+                    KMA Portal
                   </span>
                 </h1>
                 <p className="text-xs text-stone-500 font-medium">
-                  Update judicial accreditations, robe portrait, rulings, and legal domains in real-time
+                  Manage portfolio films, media accreditations, gear capabilities, and studio contacts
                 </p>
               </div>
             </div>
@@ -343,7 +373,7 @@ export const AdminPage = () => {
                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white transition-colors text-xs font-bold shadow-sm"
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>View Live Site</span>
+                <span>Live Showcase</span>
               </button>
             </div>
           </div>
@@ -359,7 +389,7 @@ export const AdminPage = () => {
               }`}
             >
               <Award className="w-4 h-4 text-amber-800" />
-              <span>Accreditations ({data.certificates.length})</span>
+              <span>Permits & Awards ({data.certificates.length})</span>
             </button>
 
             <button
@@ -371,7 +401,7 @@ export const AdminPage = () => {
               }`}
             >
               <User className="w-4 h-4 text-amber-800" />
-              <span>Judge Profile & Photo</span>
+              <span>Studio & Brand Info</span>
             </button>
 
             <button
@@ -382,8 +412,8 @@ export const AdminPage = () => {
                   : 'border-transparent text-stone-600 hover:text-stone-900'
               }`}
             >
-              <Gavel className="w-4 h-4 text-amber-800" />
-              <span>Landmark Rulings ({data.projects.length})</span>
+              <Briefcase className="w-4 h-4 text-amber-800" />
+              <span>Portfolio & Films ({data.projects.length})</span>
             </button>
 
             <button
@@ -395,7 +425,28 @@ export const AdminPage = () => {
               }`}
             >
               <Layers className="w-4 h-4 text-amber-800" />
-              <span>Legal Jurisprudence</span>
+              <span>Services & Equipment</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${
+                activeTab === 'bookings'
+                  ? 'border-amber-800 text-amber-900 bg-amber-100/50'
+                  : 'border-transparent text-stone-600 hover:text-stone-900'
+              }`}
+            >
+              <Inbox className="w-4 h-4 text-amber-800" />
+              <span className="flex items-center gap-1.5">
+                <span>Event Bookings</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold ${
+                  (bookings || []).length > 0
+                    ? 'bg-amber-800 text-white'
+                    : 'bg-stone-200 text-stone-600'
+                }`}>
+                  {(bookings || []).length}
+                </span>
+              </span>
             </button>
 
             <button
@@ -407,7 +458,7 @@ export const AdminPage = () => {
               }`}
             >
               <FileCode className="w-4 h-4 text-amber-800" />
-              <span>Backup & Reset</span>
+              <span>Backup & Restore</span>
             </button>
           </div>
         </div>
@@ -423,9 +474,9 @@ export const AdminPage = () => {
             <div className="lg:col-span-6 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-stone-900 judicial-heading">Judicial Accreditations Catalog</h2>
+                  <h2 className="text-xl font-bold text-stone-900 font-serif">KMA Official Permits & Certifications</h2>
                   <p className="text-xs text-stone-500">
-                    Click any accreditation card to modify its details immediately.
+                    Click any credential card to modify its details immediately.
                   </p>
                 </div>
 
@@ -466,8 +517,8 @@ export const AdminPage = () => {
                 {data.certificates
                   .filter(
                     (c) =>
-                      c.title.toLowerCase().includes(certSearch.toLowerCase()) ||
-                      c.issuer.toLowerCase().includes(certSearch.toLowerCase())
+                      safeVal(c.title).toLowerCase().includes(certSearch.toLowerCase()) ||
+                      safeVal(c.issuer).toLowerCase().includes(certSearch.toLowerCase())
                   )
                   .map((cert) => {
                     const isSelected = (editingCertId === cert.id) && !isAddingCert;
@@ -489,7 +540,7 @@ export const AdminPage = () => {
                           <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#f4ede3] shrink-0 border border-[#e4d8c7]">
                             <img
                               src={cert.imageUrl || "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800"}
-                              alt={cert.title}
+                              alt={safeVal(cert.title)}
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.target.src = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800";
@@ -499,14 +550,14 @@ export const AdminPage = () => {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-bold text-amber-900 truncate">
-                                {cert.issuer}
+                                {safeVal(cert.issuer)}
                               </span>
                               <span className="text-[10px] text-stone-500">
-                                • {cert.issueDate}
+                                • {safeVal(cert.issueDate)}
                               </span>
                             </div>
                             <h3 className="text-sm font-bold text-stone-900 truncate group-hover:text-amber-800 transition-colors judicial-heading">
-                              {cert.title}
+                              {safeVal(cert.title)}
                             </h3>
                             {cert.credentialId && (
                               <p className="text-[11px] text-stone-500 font-mono truncate">
@@ -639,7 +690,7 @@ export const AdminPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Credential / Fellowship Title *
+                        Credential / License Title *
                       </label>
                       <input
                         type="text"
@@ -648,14 +699,14 @@ export const AdminPage = () => {
                         onChange={(e) =>
                           setCertFormData({ ...certFormData, title: e.target.value })
                         }
-                        placeholder="e.g. CIArb Fellow (FCIArb)"
+                        placeholder="e.g. Media Production Permit • وزارة الإعلام"
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Issuing Institution *
+                        Issuing Authority / Institution *
                       </label>
                       <input
                         type="text"
@@ -664,7 +715,7 @@ export const AdminPage = () => {
                         onChange={(e) =>
                           setCertFormData({ ...certFormData, issuer: e.target.value })
                         }
-                        placeholder="e.g. CIArb, NIJS, Harvard Law"
+                        placeholder="e.g. Ministry of Media & Culture"
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
                     </div>
@@ -682,14 +733,14 @@ export const AdminPage = () => {
                         onChange={(e) =>
                           setCertFormData({ ...certFormData, issueDate: e.target.value })
                         }
-                        placeholder="e.g. October 2022"
+                        placeholder="e.g. 2024"
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Appointment Status
+                        License Status / Validity
                       </label>
                       <input
                         type="text"
@@ -697,7 +748,7 @@ export const AdminPage = () => {
                         onChange={(e) =>
                           setCertFormData({ ...certFormData, expiryDate: e.target.value })
                         }
-                        placeholder="e.g. Permanent / Life Appointment"
+                        placeholder="e.g. Certified / Valid"
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
                     </div>
@@ -707,7 +758,7 @@ export const AdminPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Roll / Registry Number
+                        License / Permit Number
                       </label>
                       <input
                         type="text"
@@ -715,7 +766,7 @@ export const AdminPage = () => {
                         onChange={(e) =>
                           setCertFormData({ ...certFormData, credentialId: e.target.value })
                         }
-                        placeholder="e.g. CIARB-F-49021"
+                        placeholder="e.g. KMA-PROD-2024-09"
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 font-mono"
                       />
                     </div>
@@ -736,10 +787,10 @@ export const AdminPage = () => {
                     </div>
                   </div>
 
-                  {/* Skills / Jurisprudence */}
+                  {/* Skills / Specialties */}
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Legal Competencies (comma separated)
+                      Accredited Skills & Specialties (comma separated)
                     </label>
                     <input
                       type="text"
@@ -747,7 +798,7 @@ export const AdminPage = () => {
                       onChange={(e) =>
                         setCertFormData({ ...certFormData, skills: e.target.value })
                       }
-                      placeholder="Civil Jurisprudence, Arbitration, Statutory Interpretation"
+                      placeholder="Cinematography, Aerial Drone, Color Grading, 4K Cinema"
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                     />
                   </div>
@@ -755,7 +806,7 @@ export const AdminPage = () => {
                   {/* Description */}
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Official Description / Scope
+                      Permit / Accreditation Scope & Details
                     </label>
                     <textarea
                       rows={3}
@@ -763,7 +814,7 @@ export const AdminPage = () => {
                       onChange={(e) =>
                         setCertFormData({ ...certFormData, description: e.target.value })
                       }
-                      placeholder="Scope of evaluation, statutory coursework, or judicial fellowship scope..."
+                      placeholder="Details of the commercial production license, flight authority, or industry award..."
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 resize-none"
                     />
                   </div>
@@ -798,13 +849,15 @@ export const AdminPage = () => {
       {/* ============================================================ */}
       {/* TAB 2: PROFILE & PHOTO */}
       {/* ============================================================ */}
+      {/* TAB 2: PROFILE */}
+      {/* ============================================================ */}
       {activeTab === 'profile' && (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           <div className="p-8 rounded-2xl bg-white border border-[#ded0bf] shadow-md space-y-8">
             <div>
-              <h2 className="text-xl font-bold text-stone-900 judicial-heading">Judge Profile & Official Portrait</h2>
+              <h2 className="text-xl font-bold text-stone-900 font-serif">KMA Profile & Studio Brand</h2>
               <p className="text-xs text-stone-500">
-                Manage your judicial title, portrait, biography, jurisdiction, and official contacts.
+                Manage your studio brand, official logo/avatar, vision, location, and contact information.
               </p>
             </div>
 
@@ -815,9 +868,9 @@ export const AdminPage = () => {
                   <img
                     src={profileForm.avatarUrl}
                     alt={profileForm.fullName}
-                    className="w-full h-full object-cover object-top"
+                    className="w-full h-full object-cover object-center"
                     onError={(e) => {
-                      e.target.src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600";
+                      e.target.src = "/logo.png";
                     }}
                   />
                 </div>
@@ -825,9 +878,9 @@ export const AdminPage = () => {
 
               <div className="space-y-3 text-center sm:text-left flex-1">
                 <div>
-                  <h3 className="text-sm font-bold text-stone-900 judicial-heading">Official Portrait</h3>
+                  <h3 className="text-sm font-bold text-stone-900 font-serif">Official Studio Logo / Portrait</h3>
                   <p className="text-xs text-stone-500">
-                    Upload an official judicial portrait or high-resolution photo (PNG, JPG, WebP).
+                    Upload an official studio logo or high-resolution photo (PNG, JPG, WebP).
                   </p>
                 </div>
 
@@ -845,7 +898,7 @@ export const AdminPage = () => {
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-800 hover:bg-amber-900 transition-colors shadow-sm"
                   >
                     <Upload className="w-3.5 h-3.5" />
-                    <span>Upload New Photo</span>
+                    <span>Upload New Logo</span>
                   </button>
                 </div>
               </div>
@@ -856,7 +909,7 @@ export const AdminPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Full Judicial Title & Name
+                    Company Name
                   </label>
                   <input
                     type="text"
@@ -869,7 +922,7 @@ export const AdminPage = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Bench Appointment / Role
+                    Tagline / Specialty
                   </label>
                   <input
                     type="text"
@@ -883,7 +936,7 @@ export const AdminPage = () => {
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Tagline / Jurisprudential Motto
+                  Brand Motto / Slogan
                 </label>
                 <input
                   type="text"
@@ -895,7 +948,7 @@ export const AdminPage = () => {
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  Judicial Biography (About the Judge)
+                  About KMA & Studio Vision
                 </label>
                 <textarea
                   rows={4}
@@ -908,7 +961,7 @@ export const AdminPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Court Jurisdiction & City
+                    Studio Location & City
                   </label>
                   <input
                     type="text"
@@ -920,7 +973,7 @@ export const AdminPage = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Chambers Official Email
+                    Official Studio Email
                   </label>
                   <input
                     type="email"
@@ -934,11 +987,11 @@ export const AdminPage = () => {
               {/* Social / Scholar Links */}
               <div className="pt-4 border-t border-[#e8dfd5] space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-stone-700">
-                  Judicial & Professional Links
+                  Social Media & Portfolio Links
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-semibold text-stone-500 mb-1">LinkedIn Profile</label>
+                    <label className="block text-[11px] font-semibold text-stone-500 mb-1">Instagram / Social Link</label>
                     <input
                       type="url"
                       value={profileForm.socials?.linkedin || ''}
@@ -953,7 +1006,7 @@ export const AdminPage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-stone-500 mb-1">Scholar / Archive Profile</label>
+                    <label className="block text-[11px] font-semibold text-stone-500 mb-1">YouTube / Vimeo / Portfolio</label>
                     <input
                       type="url"
                       value={profileForm.socials?.github || ''}
@@ -984,7 +1037,7 @@ export const AdminPage = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 3: LANDMARK RULINGS */}
+      {/* TAB 3: MEDIA WORKS & FILMS */}
       {/* ============================================================ */}
       {activeTab === 'projects' && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -992,15 +1045,15 @@ export const AdminPage = () => {
             <div className="lg:col-span-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-stone-900 judicial-heading">Landmark Rulings & Precedents</h2>
-                  <p className="text-xs text-stone-500">Manage case precedents and publications</p>
+                  <h2 className="text-xl font-bold text-stone-900 font-serif">KMA Media Works & Wedding Films</h2>
+                  <p className="text-xs text-stone-500">Manage video productions, wedding films, and commercial projects</p>
                 </div>
                 <button
                   onClick={startNewProject}
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Add Ruling</span>
+                  <span>Add Work / Film</span>
                 </button>
               </div>
 
@@ -1019,16 +1072,16 @@ export const AdminPage = () => {
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#f4ede3] shrink-0 border border-[#e4d8c7]">
                         <img
                           src={proj.imageUrl}
-                          alt={proj.title}
+                          alt={safeVal(proj.title)}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.target.src = "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800";
+                            e.target.src = "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800";
                           }}
                         />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-stone-900 truncate judicial-heading">{proj.title}</h3>
-                        <p className="text-xs text-stone-500 truncate">{proj.description}</p>
+                        <h3 className="text-sm font-bold text-stone-900 truncate font-serif">{safeVal(proj.title)}</h3>
+                        <p className="text-xs text-stone-500 truncate">{safeVal(proj.description)}</p>
                       </div>
                     </div>
 
@@ -1045,7 +1098,7 @@ export const AdminPage = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`Delete ruling "${proj.title}"?`)) {
+                          if (window.confirm(`Delete film "${safeVal(proj.title)}"?`)) {
                             deleteProject(proj.id);
                           }
                         }}
@@ -1062,51 +1115,51 @@ export const AdminPage = () => {
             {/* Project Editor Form */}
             <div className="lg:col-span-6">
               <div className="p-6 rounded-2xl bg-white border border-[#ded0bf] sticky top-40 shadow-md">
-                <h3 className="text-base font-bold text-stone-900 mb-4 pb-3 border-b border-[#e8dfd5] judicial-heading">
+                <h3 className="text-base font-bold text-stone-900 mb-4 pb-3 border-b border-[#e8dfd5] font-serif">
                   {isAddingProj
-                    ? 'Add New Landmark Ruling'
+                    ? 'Add New Film / Media Project'
                     : editingProjId
-                    ? 'Edit Landmark Ruling'
-                    : 'Select a Ruling to Edit'}
+                    ? 'Edit Media Project'
+                    : 'Select a Project to Edit'}
                 </h3>
 
                 <form onSubmit={handleSaveProject} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Ruling / Case Title *
+                      Project / Film Title *
                     </label>
                     <input
                       type="text"
                       required
                       value={projFormData.title}
                       onChange={(e) => setProjFormData({ ...projFormData, title: e.target.value })}
-                      placeholder="e.g. Commercial Concession Precedent"
+                      placeholder="e.g. Royal Wedding Highlights • فور سيزونز"
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Case Summary / Legal Holding
+                      Project Description / Deliverables
                     </label>
                     <textarea
                       rows={3}
                       value={projFormData.description}
                       onChange={(e) => setProjFormData({ ...projFormData, description: e.target.value })}
-                      placeholder="Brief holding of the judgment..."
+                      placeholder="Cinematic wedding film description and highlights..."
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 resize-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Legal Principles Involved (comma separated)
+                      Production Gear / Deliverables (comma separated)
                     </label>
                     <input
                       type="text"
                       value={projFormData.techStack}
                       onChange={(e) => setProjFormData({ ...projFormData, techStack: e.target.value })}
-                      placeholder="Commercial Law, Civil Code, Contractual Breach"
+                      placeholder="4K Cinema, Drone Aerials, Same-Day Edit, Sound Design"
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                     />
                   </div>
@@ -1114,19 +1167,19 @@ export const AdminPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Registry / Archive URL
+                        Watch Film / Vimeo / YouTube URL
                       </label>
                       <input
                         type="url"
                         value={projFormData.liveUrl}
                         onChange={(e) => setProjFormData({ ...projFormData, liveUrl: e.target.value })}
-                        placeholder="https://chambers-archive.org/..."
+                        placeholder="https://vimeo.com/..."
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Case Report Link
+                        Behind The Scenes / Gallery Link
                       </label>
                       <input
                         type="url"
@@ -1140,7 +1193,7 @@ export const AdminPage = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Ruling Image / Decree File
+                      Cover Image / Video Poster
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -1174,7 +1227,7 @@ export const AdminPage = () => {
                       className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-amber-800 hover:bg-amber-900 transition-colors shadow-sm"
                     >
                       <Save className="w-4 h-4" />
-                      <span>{editingProjId ? 'Save Ruling' : 'Add Ruling'}</span>
+                      <span>{editingProjId ? 'Save Film Details' : 'Add Film'}</span>
                     </button>
                   </div>
                 </form>
@@ -1185,15 +1238,15 @@ export const AdminPage = () => {
       )}
 
       {/* ============================================================ */}
-      {/* TAB 4: SKILLS / JURISPRUDENCE */}
+      {/* TAB 4: SKILLS / SERVICES */}
       {/* ============================================================ */}
       {activeTab === 'skills' && (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           <div className="p-8 rounded-2xl bg-white border border-[#ded0bf] shadow-md space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-stone-900 judicial-heading">Legal Jurisprudence & Core Competencies</h2>
+              <h2 className="text-xl font-bold text-stone-900 font-serif">KMA Services & Production Capabilities</h2>
               <p className="text-xs text-stone-500">
-                Edit items for each judicial domain (separated by commas).
+                Edit items for each production and media category (separated by commas).
               </p>
             </div>
 
@@ -1201,11 +1254,11 @@ export const AdminPage = () => {
               {skillsCatalog.map((cat, idx) => (
                 <div key={idx} className="p-5 rounded-xl bg-[#fbf9f6] border border-[#e8dfd5] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wider judicial-heading">
+                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wider font-serif">
                       {cat.category}
                     </span>
                     <span className="text-[11px] text-stone-500 font-mono">
-                      {cat.items.length} competencies listed
+                      {cat.items.length} capabilities listed
                     </span>
                   </div>
                   <input
@@ -1224,7 +1277,7 @@ export const AdminPage = () => {
                 className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-amber-800 hover:bg-amber-900 transition-colors shadow-md"
               >
                 <Save className="w-4 h-4" />
-                <span>Save All Legal Domains</span>
+                <span>Save All Services</span>
               </button>
             </div>
           </div>
@@ -1238,18 +1291,18 @@ export const AdminPage = () => {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           <div className="p-8 rounded-2xl bg-white border border-[#ded0bf] shadow-md space-y-8">
             <div>
-              <h2 className="text-xl font-bold text-stone-900 judicial-heading">Chambers Data Backup & Archive</h2>
+              <h2 className="text-xl font-bold text-stone-900 font-serif">KMA Data Backup & Archive</h2>
               <p className="text-xs text-stone-500">
-                Export all judicial records and accreditations as a JSON file, or restore data anytime.
+                Export all studio projects, permits, and media content as a JSON file, or restore anytime.
               </p>
             </div>
 
             {/* Export */}
             <div className="p-5 rounded-2xl bg-[#fbf9f6] border border-[#e8dfd5] flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-stone-900 judicial-heading">Download Complete Archive (.json)</h3>
+                <h3 className="text-sm font-bold text-stone-900 font-serif">Download Complete Archive (.json)</h3>
                 <p className="text-xs text-stone-500">
-                  Saves all judicial certificates, ruling records, portraits, and chambers details.
+                  Saves all wedding films, media permits, logos, and studio contacts.
                 </p>
               </div>
               <button
@@ -1264,7 +1317,7 @@ export const AdminPage = () => {
             {/* Import */}
             <div className="p-5 rounded-2xl bg-[#fbf9f6] border border-[#e8dfd5] flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-stone-900 judicial-heading">Restore from Archive (.json)</h3>
+                <h3 className="text-sm font-bold text-stone-900 font-serif">Restore from Archive (.json)</h3>
                 <p className="text-xs text-stone-500">
                   Upload a previously exported JSON backup file to restore records.
                 </p>
@@ -1287,9 +1340,9 @@ export const AdminPage = () => {
             {/* Reset */}
             <div className="p-5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between gap-4">
               <div>
-                <h3 className="text-sm font-bold text-rose-900">Reset to Default Judicial Template</h3>
+                <h3 className="text-sm font-bold text-rose-900">Reset to Default KMA Template</h3>
                 <p className="text-xs text-rose-700">
-                  Revert all accreditations and profile details back to the default Judge Mariam Awad showcase.
+                  Revert all films, permits, and studio details back to the default KMA Wedding & Media showcase.
                 </p>
               </div>
               <button
@@ -1300,6 +1353,171 @@ export const AdminPage = () => {
                 <span>Reset All</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* TAB 6: EVENT BOOKINGS (FRONTEND ONLY) */}
+      {/* ============================================================ */}
+      {activeTab === 'bookings' && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+          <div className="p-8 rounded-2xl bg-white border border-[#ded0bf] shadow-md space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#e8dfd5]">
+              <div>
+                <h2 className="text-xl font-bold text-stone-900 font-serif flex items-center gap-2.5">
+                  <Inbox className="w-5 h-5 text-amber-800" />
+                  <span>Event Bookings & Inquiries (Client-Side)</span>
+                </h2>
+                <p className="text-xs text-stone-500 mt-1">
+                  Submissions from the public Event Booking Form are stored securely in browser storage (Zero backend required).
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
+                  Total Inquiries: {(bookings || []).length}
+                </span>
+              </div>
+            </div>
+
+            {/* Bookings List */}
+            {(!bookings || bookings.length === 0) ? (
+              <div className="text-center py-16 px-4 bg-[#fbf9f6] rounded-2xl border border-dashed border-[#d8cbba]">
+                <Inbox className="w-12 h-12 text-stone-300 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-stone-700">No booking inquiries yet</h3>
+                <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto">
+                  When clients submit the Event Booking Form on the public showcase, their requests will appear here instantly.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {bookings.map((b) => (
+                  <div
+                    key={b.id}
+                    className="p-6 rounded-2xl bg-[#fbf9f6] border border-[#e8dfd5] hover:border-[#cbb497] transition-all shadow-sm space-y-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#eee3d5]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-800 text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                          {b.name ? b.name.charAt(0).toUpperCase() : 'B'}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                            <span>{b.name}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                              b.status === 'confirmed'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : b.status === 'contacted'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : 'bg-amber-100 text-amber-900 border border-amber-300'
+                            }`}>
+                              {b.status || 'new'}
+                            </span>
+                          </h3>
+                          <div className="flex items-center gap-2 text-[11px] text-stone-500 font-mono mt-0.5">
+                            <Clock className="w-3 h-3 text-stone-400" />
+                            <span>
+                              Received: {b.createdAt ? new Date(b.createdAt).toLocaleDateString() + ' ' + new Date(b.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Status changer & delete */}
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <select
+                          value={b.status || 'new'}
+                          onChange={(e) => updateBookingStatus(b.id, e.target.value)}
+                          className="px-2.5 py-1.5 rounded-xl bg-white border border-[#ded0bf] text-xs font-semibold text-stone-800 focus:outline-none focus:border-amber-700"
+                        >
+                          <option value="new">Mark: New</option>
+                          <option value="contacted">Mark: Contacted</option>
+                          <option value="confirmed">Mark: Confirmed</option>
+                        </select>
+
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Delete booking inquiry from "${b.name}"?`)) {
+                              deleteBooking(b.id);
+                              showToast('Booking inquiry removed');
+                            }
+                          }}
+                          className="p-2 text-stone-400 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors"
+                          title="Delete Booking"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                      <div className="p-3 rounded-xl bg-white border border-[#ded0bf]">
+                        <span className="text-[10px] font-bold uppercase text-stone-400 block mb-0.5">Phone / WhatsApp</span>
+                        <a
+                          href={`tel:${b.phone}`}
+                          className="font-mono font-bold text-amber-900 hover:underline flex items-center gap-1"
+                        >
+                          <Phone className="w-3 h-3 text-amber-700" />
+                          <span>{b.phone}</span>
+                        </a>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-white border border-[#ded0bf]">
+                        <span className="text-[10px] font-bold uppercase text-stone-400 block mb-0.5">Email Address</span>
+                        <a
+                          href={`mailto:${b.email}`}
+                          className="font-mono text-stone-800 hover:underline truncate block flex items-center gap-1"
+                        >
+                          <Mail className="w-3 h-3 text-amber-700 shrink-0" />
+                          <span className="truncate">{b.email || 'None'}</span>
+                        </a>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-white border border-[#ded0bf]">
+                        <span className="text-[10px] font-bold uppercase text-stone-400 block mb-0.5">Event Date</span>
+                        <span className="font-semibold text-stone-800 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-amber-700" />
+                          <span>{b.eventDate || 'Not specified'}</span>
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-white border border-[#ded0bf]">
+                        <span className="text-[10px] font-bold uppercase text-stone-400 block mb-0.5">Venue & Location</span>
+                        <span className="font-semibold text-stone-800 truncate flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-amber-700 shrink-0" />
+                          <span className="truncate">{b.location || 'Cairo / Unspecified'}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Message / Details */}
+                    <div className="p-4 rounded-xl bg-white border border-[#ded0bf] space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-stone-400">Client Vision & Message</span>
+                      <p className="text-xs text-stone-700 leading-relaxed font-normal">
+                        "{b.message}"
+                      </p>
+                    </div>
+
+                    {/* Quick WhatsApp Contact Action */}
+                    {b.phone && (
+                      <div className="flex justify-end pt-1">
+                        <a
+                          href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
+                        >
+                          <Phone className="w-3 h-3" />
+                          <span>Message on WhatsApp</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

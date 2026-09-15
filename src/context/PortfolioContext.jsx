@@ -1,17 +1,50 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { DEFAULT_PORTFOLIO_DATA } from '../data/defaultData';
 
-const STORAGE_KEY = 'mariam_awad_judge_data_v4';
+const STORAGE_KEY = 'kma_wedding_media_production_en_v6';
+const STORAGE_LANG_KEY = 'kma_wedding_lang_en_v4';
+
+const STORAGE_BOOKINGS_KEY = 'kma_wedding_bookings_v1';
 
 const PortfolioContext = createContext(null);
 
 export const PortfolioProvider = ({ children }) => {
+  // Purge any legacy keys
+  if (typeof window !== 'undefined') {
+    try {
+      [
+        'mariam_awad_judge_data_v4',
+        'awad_partners_firm_data_v1',
+        'awad_partners_firm_data_v2',
+        'awad_partners_lang_v1',
+        'kma_wedding_media_data_v3',
+        'kma_wedding_media_production_v5',
+        'kma_wedding_lang_v3'
+      ].forEach(k => {
+        localStorage.removeItem(k);
+      });
+    } catch (e) {}
+  }
+
+  // Language state: defaults to 'en'
+  const [lang, setLang] = useState(() => {
+    try {
+      const savedLang = localStorage.getItem(STORAGE_LANG_KEY);
+      if (savedLang === 'en' || savedLang === 'ar') {
+        return savedLang;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return 'en'; // Default to English
+  });
+
   const [data, setData] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.profile?.title && !parsed.profile.title.includes('Software') && !parsed.profile.title.includes('Developer')) {
+        if (parsed?.profile?.shortName === 'KMA' && !JSON.stringify(parsed).includes('Awad')) {
           return parsed;
         }
       }
@@ -20,6 +53,74 @@ export const PortfolioProvider = ({ children }) => {
     }
     return DEFAULT_PORTFOLIO_DATA;
   });
+
+  // Client-side Event Bookings submitted by visitors
+  const [bookings, setBookings] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_BOOKINGS_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Error reading bookings from localStorage', e);
+    }
+    return [
+      {
+        id: 'book-1',
+        name: 'Sarah & Omar',
+        phone: '+20 101 234 5678',
+        email: 'sarah.omar@gmail.com',
+        eventType: 'wedding',
+        eventDate: '2026-10-15',
+        location: 'Four Seasons Nile Plaza • Cairo',
+        message: 'We are planning a full royal wedding and would love to have KMA cover our special day with 4K cameras, drone sweeps, and a same-day edit.',
+        createdAt: '2026-09-14T18:20:00.000Z',
+        status: 'new'
+      },
+      {
+        id: 'book-2',
+        name: 'Nour & Karim',
+        phone: '+20 112 987 6543',
+        email: 'nour.karim@yahoo.com',
+        eventType: 'destination',
+        eventDate: '2026-11-20',
+        location: 'El Gouna Red Sea',
+        message: 'Beachfront destination wedding ceremony and sunset photography session for our intimate gathering.',
+        createdAt: '2026-09-15T09:45:00.000Z',
+        status: 'confirmed'
+      }
+    ];
+  });
+
+  // Save bookings to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_BOOKINGS_KEY, JSON.stringify(bookings));
+    } catch (e) {
+      console.error('Error saving bookings to localStorage', e);
+    }
+  }, [bookings]);
+
+  const addBooking = (bookingData) => {
+    const newBooking = {
+      ...bookingData,
+      id: `book-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      status: 'new'
+    };
+    setBookings((prev) => [newBooking, ...prev]);
+    return newBooking;
+  };
+
+  const deleteBooking = (id) => {
+    setBookings((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  const updateBookingStatus = (id, newStatus) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
+    );
+  };
 
   // Current view: 'portfolio' or 'admin'
   const [currentView, setCurrentView] = useState(() => {
@@ -32,11 +133,46 @@ export const PortfolioProvider = ({ children }) => {
   // Active certificate modal for full-screen inspection
   const [activeModalCert, setActiveModalCert] = useState(null);
 
+  // Active project/deal modal for full-screen inspection
+  const [activeModalProject, setActiveModalProject] = useState(null);
+
   // Certificate currently being edited in the admin panel
   const [editingCertId, setEditingCertId] = useState(null);
 
   // Toast system
   const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
+
+  // Keep HTML lang & dir attribute in sync
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    try {
+      localStorage.setItem(STORAGE_LANG_KEY, lang);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [lang]);
+
+  const toggleLanguage = () => {
+    setLang((prev) => (prev === 'ar' ? 'en' : 'ar'));
+  };
+
+  const setLanguage = (newLang) => {
+    if (newLang === 'ar' || newLang === 'en') {
+      setLang(newLang);
+    }
+  };
+
+  // Helper function to extract translated text
+  const t = (val) => {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (typeof val === 'object') {
+      return val[lang] || val.ar || val.en || '';
+    }
+    return String(val);
+  };
 
   // Synchronize hash with view
   useEffect(() => {
@@ -63,7 +199,8 @@ export const PortfolioProvider = ({ children }) => {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
-    setTimeout(() => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => {
       setToast(null);
     }, 3800);
   };
@@ -73,8 +210,7 @@ export const PortfolioProvider = ({ children }) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.error('Failed to save to localStorage (quota exceeded?)', e);
-      showToast('Storage warning: Data might be too large for browser local cache.', 'error');
+      console.error('Failed to save to localStorage', e);
     }
   }, [data]);
 
@@ -87,7 +223,7 @@ export const PortfolioProvider = ({ children }) => {
         ...profileUpdates
       }
     }));
-    showToast('Profile information updated successfully!');
+    showToast(lang === 'ar' ? 'تم تحديث بيانات الشركة بنجاح!' : 'Company information updated successfully!');
   };
 
   // Certificate methods
@@ -100,7 +236,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       certificates: [certWithId, ...prev.certificates]
     }));
-    showToast(`Added certificate: "${newCert.title}"`);
+    showToast(lang === 'ar' ? 'تمت إضافة الاعتماد الرسمي بنجاح' : 'Official permit / accreditation added successfully');
     return certWithId;
   };
 
@@ -111,11 +247,10 @@ export const PortfolioProvider = ({ children }) => {
         cert.id === id ? { ...cert, ...updatedFields } : cert
       )
     }));
-    showToast('Certificate saved successfully!');
+    showToast(lang === 'ar' ? 'تم حفظ الاعتماد بنجاح' : 'Accreditation saved successfully');
   };
 
   const deleteCertificate = (id) => {
-    const target = data.certificates.find((c) => c.id === id);
     setData((prev) => ({
       ...prev,
       certificates: prev.certificates.filter((c) => c.id !== id)
@@ -123,29 +258,28 @@ export const PortfolioProvider = ({ children }) => {
     if (editingCertId === id) {
       setEditingCertId(null);
     }
-    showToast(`Removed certificate: "${target?.title || id}"`, 'info');
+    showToast(lang === 'ar' ? 'تم حذف الاعتماد' : 'Accreditation removed', 'info');
   };
 
   const refreshCertificates = () => {
-    // Re-orders / touches certificates to trigger a fresh re-render and timestamp
     setData((prev) => ({
       ...prev,
       certificates: [...prev.certificates]
     }));
-    showToast('Certificates refreshed successfully!');
+    showToast(lang === 'ar' ? 'تم تحديث قائمة الاعتمادات' : 'Accreditations refreshed successfully');
   };
 
   // Project methods
   const addProject = (newProject) => {
     const projectWithId = {
       ...newProject,
-      id: newProject.id || `proj-${Date.now()}`
+      id: newProject.id || `deal-${Date.now()}`
     };
     setData((prev) => ({
       ...prev,
       projects: [projectWithId, ...prev.projects]
     }));
-    showToast(`Added project: "${newProject.title}"`);
+    showToast(lang === 'ar' ? 'تمت إضافة العمل/الفيلم بنجاح' : 'Film / Project added successfully');
     return projectWithId;
   };
 
@@ -156,41 +290,27 @@ export const PortfolioProvider = ({ children }) => {
         proj.id === id ? { ...proj, ...updatedFields } : proj
       )
     }));
-    showToast('Project updated successfully!');
+    showToast(lang === 'ar' ? 'تم حفظ تفاصيل الفيلم بنجاح' : 'Film details updated successfully');
   };
 
   const deleteProject = (id) => {
-    const target = data.projects.find((p) => p.id === id);
     setData((prev) => ({
       ...prev,
       projects: prev.projects.filter((p) => p.id !== id)
     }));
-    showToast(`Removed project: "${target?.title || id}"`, 'info');
-  };
-
-  // Skills & Experience
-  const updateSkills = (newSkills) => {
-    setData((prev) => ({
-      ...prev,
-      skills: newSkills
-    }));
-    showToast('Skills catalog updated!');
-  };
-
-  const updateExperience = (newExperience) => {
-    setData((prev) => ({
-      ...prev,
-      experience: newExperience
-    }));
-    showToast('Work experience updated!');
+    showToast(lang === 'ar' ? 'تم حذف الفيلم' : 'Film removed', 'info');
   };
 
   // Reset to default
   const resetToDefault = () => {
-    if (window.confirm('Are you sure you want to reset all portfolio data to default? Any unsaved edits will be replaced.')) {
+    const confirmMsg =
+      lang === 'ar'
+        ? 'هل أنت متأكد من استعادة البيانات الافتراضية لشركة KMA؟'
+        : 'Are you sure you want to reset all data to KMA defaults?';
+    if (window.confirm(confirmMsg)) {
       setData(DEFAULT_PORTFOLIO_DATA);
       localStorage.removeItem(STORAGE_KEY);
-      showToast('Restored default portfolio data!', 'info');
+      showToast(lang === 'ar' ? 'تمت استعادة البيانات الافتراضية' : 'Restored default KMA data!', 'info');
     }
   };
 
@@ -200,15 +320,31 @@ export const PortfolioProvider = ({ children }) => {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `mariam_awad_portfolio_${new Date().toISOString().slice(0, 10)}.json`);
+      downloadAnchor.setAttribute("download", `kma_wedding_media_${new Date().toISOString().slice(0, 10)}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast('Portfolio JSON backup downloaded successfully!');
+      showToast(lang === 'ar' ? 'تم تصدير نسخة احتياطية من البيانات' : 'KMA data exported successfully!');
     } catch (e) {
       console.error(e);
-      showToast('Failed to export backup.', 'error');
+      showToast(lang === 'ar' ? 'فشل التصدير' : 'Failed to export backup.', 'error');
     }
+  };
+
+  const updateSkills = (newSkills) => {
+    setData((prev) => ({
+      ...prev,
+      skills: newSkills
+    }));
+    showToast(lang === 'ar' ? 'تم تحديث المهارات' : 'Skills updated!');
+  };
+
+  const updateExperience = (newExp) => {
+    setData((prev) => ({
+      ...prev,
+      experience: newExp
+    }));
+    showToast(lang === 'ar' ? 'تم تحديث الخبرات' : 'Experience updated!');
   };
 
   // Import JSON backup file
@@ -219,12 +355,12 @@ export const PortfolioProvider = ({ children }) => {
         const parsed = JSON.parse(event.target.result);
         if (parsed.profile && parsed.certificates) {
           setData(parsed);
-          showToast('Portfolio data restored from JSON backup!');
+          showToast(lang === 'ar' ? 'تم استيراد البيانات بنجاح' : 'Data imported from JSON successfully!');
         } else {
-          showToast('Invalid backup file structure.', 'error');
+          showToast(lang === 'ar' ? 'ملف غير صالح' : 'Invalid backup file structure.', 'error');
         }
       } catch (err) {
-        showToast('Error reading JSON file.', 'error');
+        showToast(lang === 'ar' ? 'خطأ في قراءة الملف' : 'Error reading JSON file.', 'error');
       }
     };
     reader.readAsText(file);
@@ -234,10 +370,16 @@ export const PortfolioProvider = ({ children }) => {
     <PortfolioContext.Provider
       value={{
         data,
+        lang,
+        setLanguage,
+        toggleLanguage,
+        t,
         currentView,
         navigateTo,
         activeModalCert,
         setActiveModalCert,
+        activeModalProject,
+        setActiveModalProject,
         editingCertId,
         setEditingCertId,
         toast,
@@ -254,7 +396,11 @@ export const PortfolioProvider = ({ children }) => {
         updateExperience,
         resetToDefault,
         exportDataJSON,
-        importDataJSON
+        importDataJSON,
+        bookings,
+        addBooking,
+        deleteBooking,
+        updateBookingStatus
       }}
     >
       {children}

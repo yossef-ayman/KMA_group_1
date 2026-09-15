@@ -49,8 +49,50 @@
   font-family: 'Playfair Display', Georgia, serif;
 }
 
+[dir="rtl"] {
+  font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+}
+
+[dir="rtl"] .judicial-heading {
+  font-family: 'Amiri', 'Cairo', serif;
+}
+
 .gradient-gold {
-  background: linear-gradient(135deg, #78350f 0%, #b45309 50%, #92400e 100%);
+  background: linear-gradient(135deg, #78350f 0%, #b45309 45%, #d97706 70%, #92400e 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.gradient-silver {
+  background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #0f172a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-glow {
+  box-shadow: 0 0 35px -5px rgba(180, 83, 9, 0.2);
+}
+
+/* Scroll reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }

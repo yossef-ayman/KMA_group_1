@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
 import { CertificateModal } from './components/CertificateModal';
+import { ProjectModal } from './components/ProjectModal';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { AdminPage } from './pages/AdminPage';
 
@@ -18,6 +19,7 @@ const AppContent = () => {
       </main>
       <Footer />
       <CertificateModal />
+      <ProjectModal />
       <Toast />
     </div>
   );

@@ -1,219 +1,319 @@
 export const DEFAULT_PORTFOLIO_DATA = {
   profile: {
-    fullName: "Hon. Mariam Awad",
-    title: "Presiding Judge & Senior Judicial Arbitrator",
-    tagline: "Administering justice with principled jurisprudence, impartiality, and an unwavering commitment to the rule of law.",
-    bio: "The Honorable Mariam Awad is a distinguished Presiding Judge of the Court of Appeal, specializing in commercial litigation, banking disputes, civil jurisprudence, and international commercial arbitration. With over fifteen years of judicial service, she is renowned for authoring landmark appellate judgments, establishing binding legal precedents, and serving as a presiding arbitrator in multi-million-dollar cross-border tribunals. Dedicated to judicial independence, meticulous statutory reasoning, and the modern advancement of courtroom evidence.",
-    location: "Palace of Justice, High Judicial Council, Cairo, Egypt",
-    email: "chambers.mariam.awad@judiciary.org",
-    phone: "+20 (2) 2577 8800",
-    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600",
-    resumeUrl: "#",
+    fullName: "KMA Media & Wedding Production",
+    shortName: "KMA",
+    title: "Premier Cinematography & Luxury Wedding Media Production",
+    tagline: "Capturing your timeless moments and premier events with high-end digital cinema and visual artistry.",
+    bio: "KMA is a premier media production company specializing in luxury wedding cinematography, visual storytelling, and major corporate event coverage. Equipped with high-end cinema cameras, optical lenses, and licensed aerial drones, our team of directors and cinematographers craft cinematic experiences that last forever.",
+    location: "Cairo, Egypt • Available for Destination Weddings & Worldwide Travel",
+    email: "contact@kmawedding.com",
+    phone: "+20 100 000 0000",
+    phoneSecondary: "+20 120 000 0000",
+    avatarUrl: "/logo.png",
+    logoUrl: "/logo.png",
     openToWork: true,
     socials: {
-      github: "https://orcid.org", // Judicial scholar orcid profile
-      linkedin: "https://linkedin.com/in/judge-mariam-awad",
-      twitter: "https://twitter.com/judge_mariam",
-      website: "https://chambers-mariam-awad.org"
+      instagram: "https://instagram.com/kma_wedding",
+      facebook: "https://facebook.com/kmawedding",
+      youtube: "https://youtube.com/@kmawedding",
+      tiktok: "https://tiktok.com/@kmawedding"
     },
     stats: [
-      { label: "Years on the Bench", value: "15+" },
-      { label: "Landmark Judgments", value: "280+" },
-      { label: "Judicial Fellowships", value: "12+" },
-      { label: "Arbitrated Tribunals", value: "65+" }
+      {
+        value: "+950",
+        label: "Weddings & Events Documented",
+        desc: "Celebrated across Egypt & Middle East"
+      },
+      {
+        value: "+10",
+        label: "Years of Creative Excellence",
+        desc: "Pioneering visual storytelling"
+      },
+      {
+        value: "25+",
+        label: "Professional Cinema Crew",
+        desc: "Specialized directors & cinematographers"
+      },
+      {
+        value: "99.8%",
+        label: "Client Satisfaction Rate",
+        desc: "Unmatched reviews & recommendations"
+      }
     ]
   },
+
   certificates: [
     {
       id: "cert-1",
-      title: "State Judicial Appointment & Supreme Bench Qualification Fellowship",
-      issuer: "National Institute for Judicial Studies (NIJS) / Supreme Judicial Council",
-      issueDate: "November 2021",
-      expiryDate: "Life Tenure Appointment",
-      credentialId: "NIJS-SJC-99410",
-      credentialUrl: "https://nijs.gov.eg/registry/verify",
-      imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
-      description: "Highest state judicial fellowship awarded upon rigorous evaluation of appellate adjudication, constitutional review, civil code interpretation, and courtroom trial presidency with Highest Honors.",
-      skills: ["Civil Jurisprudence", "Appellate Adjudication", "Constitutional Law", "Bench Leadership", "Judicial Ethics"],
+      title: "Commercial Media Production & Cinematography License",
+      issuer: "National Media Authority & Cinema Chamber",
+      issueDate: "2016",
+      expiryDate: "Active Official License",
+      credentialId: "KMA-MEDIA-LIC-9410",
+      credentialUrl: "https://kmawedding.com/license",
+      imageUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800",
+      description: "Official accredited permit for commercial media production, cinematic broadcasting, outdoor filming, and luxury wedding documentation.",
+      skills: ["Media Production", "Cinematography", "Event Documentation", "Official Permits"],
+      category: "Official Permits & Licenses",
       featured: true
     },
     {
       id: "cert-2",
-      title: "Fellow of the Chartered Institute of Arbitrators (FCIArb)",
-      issuer: "Chartered Institute of Arbitrators (CIArb, London)",
-      issueDate: "March 2020",
-      expiryDate: "Permanent Fellow",
-      credentialId: "CIARB-LON-84210",
-      credentialUrl: "https://ciarb.org/membership/fellows",
-      imageUrl: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80&w=800",
-      description: "Premier global accreditation certifying peerless mastery in international commercial arbitration, tribunal presiding, UNCITRAL arbitration rules, cross-border award formulation, and global enforcement.",
-      skills: ["Commercial Arbitration", "Tribunal Presiding", "Award Drafting", "UNCITRAL Rules", "New York Convention"],
+      title: "Sony Cine Pro Certified Cinematographer",
+      issuer: "Sony Professional Solutions & CineAlta",
+      issueDate: "2020",
+      expiryDate: "Lifetime Certification",
+      credentialId: "SONY-CINE-PRO-8812",
+      credentialUrl: "https://pro.sony/verify",
+      imageUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=800",
+      description: "International accreditation certifying mastery in digital cinema camera operation, advanced color science, low-light imaging, and cinematic prime optics.",
+      skills: ["Sony FX Series", "Color Grading", "Cine Primes", "Advanced Lighting"],
+      category: "Technical Certifications",
       featured: true
     },
     {
       id: "cert-3",
-      title: "Doctor of Juridical Science (S.J.D. / Ph.D. in Comparative Commercial Law)",
-      issuer: "Cairo University Faculty of Law & Sorbonne International Faculty",
-      issueDate: "June 2018",
-      expiryDate: "Doctorate Degree",
-      credentialId: "DOC-LAW-55102",
-      credentialUrl: "https://law.cu.edu.eg/doctoral-register",
-      imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=800",
-      description: "Doctoral dissertation on 'Contractual Equilibrium and Cross-Border Investment Concessions in Civil Law Jurisdictions', awarded Summa Cum Laude with unanimous judicial commendation.",
-      skills: ["Comparative Law", "Commercial Concessions", "Civil Obligations", "Doctoral Jurisprudence"],
+      title: "Commercial Aerial Drone Operator Permit",
+      issuer: "Civil Aviation Authority & Aerial Permits",
+      issueDate: "2021",
+      expiryDate: "Renewed & Active",
+      credentialId: "UAV-DRONE-LIC-3301",
+      credentialUrl: "https://kmawedding.com/drone-permit",
+      imageUrl: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80&w=800",
+      description: "Official flight license to operate professional aerial drones for panoramic cinematic filming of weddings, open-air venues, and summits under safety protocols.",
+      skills: ["DJI Inspire 3", "4K Aerial Cinematography", "Panoramic Angles", "Flight Safety"],
+      category: "Official Permits & Licenses",
       featured: true
     },
     {
       id: "cert-4",
-      title: "Judicial Program in Public International Law & State Immunity",
-      issuer: "The Hague Academy of International Law / Peace Palace",
-      issueDate: "August 2017",
-      expiryDate: "Permanent Diploma",
-      credentialId: "HAGUE-INTL-3901",
-      credentialUrl: "https://hagueacademy.nl/alumni",
-      imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=800",
-      description: "Specialized diplomatic and judicial fellowship on public international law, sovereign immunity doctrines, international court of justice (ICJ) procedures, and treaty interpretation.",
-      skills: ["Public International Law", "State Immunity", "Treaty Interpretation", "Bilateral Investment Treaties"],
-      featured: false
-    },
-    {
-      id: "cert-5",
-      title: "Advanced Judicial Mediation & Alternative Dispute Resolution Diploma",
-      issuer: "Harvard Law School Program on Negotiation (PON)",
-      issueDate: "September 2016",
-      expiryDate: "Permanent Credential",
-      credentialId: "HLS-PON-78142",
-      credentialUrl: "https://execed.law.harvard.edu",
-      imageUrl: "https://images.unsplash.com/photo-1436450412740-6b988f486c6b?auto=format&fit=crop&q=80&w=800",
-      description: "Executive qualification in high-stakes multi-party negotiation, court-annexed mediation techniques, consensus building, and restorative dispute resolution mechanisms.",
-      skills: ["Judicial Mediation", "ADR Conciliation", "Conflict De-escalation", "Complex Settlement Strategy"],
-      featured: false
-    },
-    {
-      id: "cert-6",
-      title: "WIPO Certificate in International Intellectual Property Adjudication",
-      issuer: "World Intellectual Property Organization (WIPO, Geneva)",
-      issueDate: "April 2015",
-      expiryDate: "Permanent Credential",
-      credentialId: "WIPO-JUD-12093",
-      credentialUrl: "https://wipo.int/academy/verify",
-      imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
-      description: "Specialized qualification for high court judges on patent litigation, trade secrets injunctions, trademark infringements, and international copyright conventions.",
-      skills: ["Intellectual Property", "Patent Litigation", "Trade Secrets Law", "Technology Injunctions"],
+      title: "Best Wedding Film & Media Production Award",
+      issuer: "Middle East Wedding & Media Awards",
+      issueDate: "2023",
+      expiryDate: "Annual Excellence Honor",
+      credentialId: "ME-WED-AWARD-2023",
+      credentialUrl: "https://kmawedding.com/awards",
+      imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800",
+      description: "Awarded top honor for outstanding cinematography and visual storytelling in luxury weddings across the Middle East.",
+      skills: ["Wedding Films", "Cinematic Direction", "Master Editing", "VIP Client Care"],
+      category: "Awards & Honors",
       featured: false
     }
   ],
+
   projects: [
     {
-      id: "case-1",
-      title: "Appellate Judgment No. 1422: Sovereign Commercial Concession & Force Majeure",
-      description: "Presided over and authored a definitive precedent regarding state commercial contracts, the doctrine of unforeseen economic hardship, and cross-border enforcement standards under the New York Convention.",
-      techStack: ["Civil Code", "Commercial Law", "Force Majeure", "Appellate Precedent", "Sovereign Contracts"],
-      liveUrl: "https://judiciary-archive.gov.eg/rulings/case-1422-appeal",
-      githubUrl: "https://chambers-archive.org/cases/1422",
-      imageUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800",
+      id: "proj-1",
+      title: "Royal Palace Wedding Highlights • Baron Palace",
+      category: "weddings",
+      categoryLabel: "Cinematic Weddings",
+      value: "Full VIP Cinema Package",
+      year: "2024",
+      tribunal: "5-Camera Cinema Crew & Drone",
+      clientType: "Luxury Royal Wedding",
+      description: "Comprehensive multi-camera cinema production for a lavish palace wedding, featuring 4K aerial drone sweeps, live crystal audio recording, and same-day highlights delivered to the couple that evening.",
+      outcome: "Delivered an 8-minute 4K cinematic film, handcrafted Italian leather album, and full archival raw footage with glowing client acclaim.",
+      techStack: ["Sony FX6 / FX3", "DJI Cinema Drone", "Custom Color Grading", "Same Day Edit"],
+      liveUrl: "https://kmawedding.com/portfolio/royal-wedding",
+      githubUrl: "https://instagram.com/kma_wedding",
+      imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800",
       featured: true
     },
     {
-      id: "case-2",
-      title: "International Arbitral Award: Mega-Infrastructure Energy Consortium Dispute ($185M)",
-      description: "Sole Arbitrator presiding over an international dispute between a multinational energy contractor and a state infrastructure authority, issuing a comprehensive, enforceable arbitral award with forensic delay assessments.",
-      techStack: ["CIArb Arbitration", "FIDIC Silver Book", "Delay Analysis", "Enforceable Award", "CRCICA Rules"],
-      liveUrl: "https://arbitration-registry.org/awards/energy-consortium-185",
-      githubUrl: "https://chambers-archive.org/arbitration/award-185",
-      imageUrl: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&q=80&w=800",
+      id: "proj-2",
+      title: "Destination Beach Wedding • El Gouna Red Sea",
+      category: "destination",
+      categoryLabel: "Destination Weddings",
+      value: "Full Destination Package",
+      year: "2024",
+      tribunal: "Outdoor Seaside & Yacht Sessions",
+      clientType: "International Destination Couple",
+      description: "Romantic wedding documentary capturing coastal sunset light, beachfront vows, and candid unscripted moments by the golden sea in El Gouna.",
+      outcome: "Delivered a cinematic teaser film and 450+ fine-art retouched high-resolution photographs in a digital gallery.",
+      techStack: ["Outdoor Cinematography", "Golden Hour Lighting", "Coastal Palette", "Fine Art Gallery"],
+      liveUrl: "https://kmawedding.com/portfolio/gouna-wedding",
+      githubUrl: "https://instagram.com/kma_wedding",
+      imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800",
       featured: true
     },
     {
-      id: "case-3",
-      title: "Judicial Treatise: 'Evidentiary Standards in Electronic Contracts, Cryptography & AI'",
-      description: "A published 340-page authoritative monograph examining evidentiary admissibility, burden of proof in digital transactions, smart contract liability, and modern electronic judicial records.",
-      techStack: ["Legal Scholarship", "Digital Evidence", "Cyber Jurisprudence", "Judicial Codification"],
-      liveUrl: "https://judicial-studies.gov.eg/publications/electronic-evidence-treatise",
-      githubUrl: "https://chambers-archive.org/publications/treatise-digital-law",
-      imageUrl: "https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&q=80&w=800",
+      id: "proj-3",
+      title: "Annual Global Summit & Corporate Gala Coverage",
+      category: "events",
+      categoryLabel: "Corporate Events",
+      value: "Official Media Production",
+      year: "2024",
+      tribunal: "Cairo International Conference Center",
+      clientType: "Premier Corporate Enterprise",
+      description: "Complete visual management for an annual summit of 1,500+ attendees, featuring multi-cam live broadcast to venue LED displays, VIP interview production, and instant social reels.",
+      outcome: "Continuous 8-hour live broadcast, accompanied by 20+ viral short-form videos delivered for real-time digital release.",
+      techStack: ["Multi-Cam Live Switch", "Broadcast Direction", "Social Media Reels", "VIP Interviews"],
+      liveUrl: "https://kmawedding.com/portfolio/annual-summit",
+      githubUrl: "https://kmawedding.com/events",
+      imageUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800",
       featured: true
     },
     {
-      id: "case-4",
-      title: "Court Ruling No. 891: Corporate Governance, Shareholder Protection & Fiduciary Breach",
-      description: "High Court ruling establishing binding judicial guidelines regarding directors' fiduciary obligations during leveraged buyouts, minority shareholder safeguards, and forensic accounting validity.",
-      techStack: ["Corporate Law", "Shareholder Rights", "Fiduciary Duty", "Forensic Accounting"],
-      liveUrl: "https://judiciary-archive.gov.eg/rulings/case-891-corporate",
-      githubUrl: "https://chambers-archive.org/cases/891",
-      imageUrl: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=800",
+      id: "proj-4",
+      title: "Bridal Editorial Photo Session & Italian Album",
+      category: "photography",
+      categoryLabel: "Bridal Photography",
+      value: "Luxury Fine-Art Album",
+      year: "2023",
+      tribunal: "KMA Studio & Private Estate",
+      clientType: "Private Wedding Portraiture",
+      description: "High-fashion editorial session showcasing bridal couture, fine jewelry, and intimate couple portraits captured with dramatic studio lighting.",
+      outcome: "Designed and produced a bespoke handcrafted Italian leather album with lifetime color and paper archival guarantee.",
+      techStack: ["Editorial Studio Lighting", "Natural Skin Retouching", "Italian Printmaking", "Custom Album Layout"],
+      liveUrl: "https://kmawedding.com/portfolio/bridal-session",
+      githubUrl: "https://instagram.com/kma_wedding",
+      imageUrl: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80&w=800",
       featured: false
+    },
+    {
+      id: "proj-5",
+      title: "Luxury Open-Air Garden Wedding & Fireworks",
+      category: "weddings",
+      categoryLabel: "Cinematic Weddings",
+      value: "Outdoor Cinema Pack",
+      year: "2023",
+      tribunal: "Sheikh Zayed Luxury Resort",
+      clientType: "Celebrity Wedding",
+      description: "Nighttime open-air cinematography capturing ambient garden fairy lights, floral installations, and spectacular fireworks with ultra-fast cine lenses.",
+      outcome: "Produced a dynamic teaser film and full-length feature movie that garnered widespread appreciation from the couple and guests.",
+      techStack: ["Low-Light Sensor Tech", "Cine Prime Optics", "120fps Slow-Motion", "Dynamic Sound Design"],
+      liveUrl: "https://kmawedding.com/portfolio/outdoor-wedding",
+      githubUrl: "https://instagram.com/kma_wedding",
+      imageUrl: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&q=80&w=800",
+      featured: false
+    },
+    {
+      id: "proj-6",
+      title: "High-Fashion Brand Commercial & Video Campaign",
+      category: "commercial",
+      categoryLabel: "Commercial Media",
+      value: "National Campaign",
+      year: "2024",
+      tribunal: "KMA Soundstages & On-Location",
+      clientType: "Luxury Apparel Brand",
+      description: "Scriptwriting, creative directing, and cinematic production for a premium promotional campaign tailored for 4K streaming and social digital channels.",
+      outcome: "Generated over 2M organic impressions across digital platforms, successfully establishing brand visual identity.",
+      techStack: ["Commercial Direction", "Visual Effects", "Master Audio Mastering", "Omni-Platform Delivery"],
+      liveUrl: "https://kmawedding.com/portfolio/commercial-campaign",
+      githubUrl: "https://kmawedding.com/media",
+      imageUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800",
+      featured: true
     }
   ],
+
+  practiceAreas: [
+    {
+      id: "service-1",
+      category: "weddings",
+      title: "Cinematic Wedding Films",
+      description: "We tell your love story through cinematic imagery that combines heartfelt emotion with cutting-edge cinema technology and direction.",
+      items: [
+        "4K / 6K Digital Cinema Cameras",
+        "Custom Score & Sound Design",
+        "Same-Day Edit Highlights",
+        "Crisp Multi-Mic Audio Capture",
+        "Luxury Wooden USB Box Delivery"
+      ]
+    },
+    {
+      id: "service-2",
+      category: "photography",
+      title: "Artistic Bridal & Editorial Photography",
+      description: "Exquisite portraits and spontaneous candids capturing every smile and joyous tear, paired with handcrafted Italian fine-art albums.",
+      items: [
+        "Outdoor Destination Sessions",
+        "Bridal Details & Jewelry Focus",
+        "Italian Digital Flush-Mount Albums",
+        "High-End Fashion Skin Retouching",
+        "Fully-Equipped Lighting Studio"
+      ]
+    },
+    {
+      id: "service-3",
+      category: "drone",
+      title: "Aerial Drone Cinematography",
+      description: "Breathtaking panoramic aerial sweeps that lend your event a grand, regal perspective unobtainable by conventional cameras.",
+      items: [
+        "Licensed Professional Drone Fleet",
+        "Panoramic Venue & Decor Aerials",
+        "Certified Commercial Pilots",
+        "Ultra-HD 4K Resolution",
+        "Strict Venue Safety Compliance"
+      ]
+    },
+    {
+      id: "service-4",
+      category: "media",
+      title: "Corporate Media & Event Production",
+      description: "End-to-end visual coverage for conferences, summits, and brand galas, featuring live multi-cam streaming and immediate short reels.",
+      items: [
+        "Multi-Camera Live Streaming",
+        "Same-Day Social Media Reels",
+        "Live On-Screen Video Switching",
+        "Comprehensive Press & Media Coverage",
+        "Corporate Brand Documentaries"
+      ]
+    }
+  ],
+
+  milestones: [
+    {
+      year: "2024",
+      title: "Surpassed 950 Celebrated Weddings & Events",
+      description: "Expanded our cinema camera fleet and upgraded aerial drone systems to the latest generation of digital cinematography."
+    },
+    {
+      year: "2023",
+      title: "Awarded Best Middle East Wedding Film Production",
+      description: "Claimed 1st place in regional industry accolades for cinematic excellence and emotional storytelling."
+    },
+    {
+      year: "2020",
+      title: "Flagship Studio Launch & Color Suite Opening",
+      description: "Opened our modern production facility with dedicated mastering suites and multi-camera live broadcast infrastructure."
+    },
+    {
+      year: "2015",
+      title: "Founding of KMA with a Cinematic Vision",
+      description: "Launched with a singular passion: turning weddings and milestones into timeless visual masterpieces."
+    }
+  ],
+
   skills: [
     {
-      category: "Courtroom Adjudication & Bench Control",
+      category: "Cinematography & Camera Systems",
       items: [
-        "Statutory Reasoning & Construction",
-        "Appellate Decree Drafting",
-        "Courtroom Trial Management",
-        "Evidentiary & Forensic Evaluation",
-        "Judicial Ethics & Impartiality",
-        "Injunctions & Expedited Decrees"
+        "Sony FX6 / FX3 Cinema Line",
+        "Cine Prime Optics",
+        "4K / 6K Resolution",
+        "120fps Slow Motion",
+        "DJI Ronin Gimbal Stabilization"
       ]
     },
     {
-      category: "Substantive Jurisprudence",
+      category: "Post-Production & Sound Design",
       items: [
-        "Commercial & Corporate Law",
-        "Civil Obligations & Torts",
-        "Banking & Financial Instruments",
-        "Constitutional & Administrative Review",
-        "Intellectual Property & Trade Secrets",
-        "Real Estate & Construction Disputes"
+        "Davinci Resolve Color Science",
+        "Same-Day Edit Highlights",
+        "Cinematic Sound Mastering",
+        "High-End Skin Retouching",
+        "Archival Master Storage"
       ]
     },
     {
-      category: "International Arbitration & ADR",
+      category: "Aerial & Lighting Technology",
       items: [
-        "CIArb Fellowship (London)",
-        "ICC & CRCICA Arbitral Rules",
-        "Tribunal Presidency & Hearing Control",
-        "Arbitral Award Drafting",
-        "1958 New York Convention Enforcement",
-        "Court-Annexed Judicial Mediation"
+        "DJI Aerial Drones",
+        "Commercial Flight Permits",
+        "Aputure Studio Lighting",
+        "Multi-Camera Live Broadcast",
+        "Wireless Video Transmission"
       ]
-    },
-    {
-      category: "Scholarship & Judicial Leadership",
-      items: [
-        "Comparative Legal Analysis",
-        "Judicial Mentorship & Training",
-        "Legislative Reform Drafting",
-        "Supreme Court Procedural Rules",
-        "Electronic Court Systems & Digital Justice"
-      ]
-    }
-  ],
-  experience: [
-    {
-      role: "Presiding Judge (رئيس محكمة بالاستئناف)",
-      company: "Court of Appeal — Commercial & Corporate Circuits",
-      period: "2020 - Present",
-      description: "Presiding over multi-million-pound commercial appeals, cross-border corporate reorganizations, banking disputes, and challenge proceedings against international arbitral awards; authored over 140 binding appellate judgments."
-    },
-    {
-      role: "Judicial Counselor & Magistrate (مستشار وقاضٍ)",
-      company: "First-Instance Civil & Commercial Tribunal",
-      period: "2015 - 2020",
-      description: "Adjudicated high-stakes civil and commercial trials, issued provisional preservation orders, supervised court-annexed mediation circuits, and streamlined case management."
-    },
-    {
-      role: "Member of the Technical Bureau & Judicial Inspection (عضو المكتب الفني والتفتيش القضائي)",
-      company: "Supreme Judicial Council / Ministry of Justice",
-      period: "2011 - 2015",
-      description: "Conducted legislative review of civil procedure reforms, prepared legal memoranda on conflicting precedents for high judicial assemblies, and monitored court performance standards."
-    },
-    {
-      role: "Public Prosecutor & Judicial Officer (النيابة العامة والقضاء)",
-      company: "General Prosecution Department",
-      period: "2008 - 2011",
-      description: "Investigated major financial and commercial crimes, presented state indictments before criminal tribunals, and supervised evidentiary chain of custody."
     }
   ]
 };

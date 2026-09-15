@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Award, Settings, Eye, Send, ArrowRight, Scale } from 'lucide-react';
+import { Menu, X, Eye, Send, ArrowRight, Camera, Sparkles, Globe, Film } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 
 export const Navbar = () => {
-  const { data, currentView, navigateTo } = usePortfolio();
+  const { data, lang, toggleLanguage, t, currentView, navigateTo } = usePortfolio();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
 
   const navLinks = [
-    { label: 'About', href: '#about' },
-    { label: 'Judicial Accreditations', href: '#certificates' },
-    { label: 'Landmark Rulings', href: '#projects' },
-    { label: 'Legal Jurisprudence', href: '#skills' },
-    { label: 'Chambers Contact', href: '#contact' },
+    { label: lang === 'ar' ? 'عن KMA' : 'About KMA', href: '#about' },
+    { label: lang === 'ar' ? 'معرض الأعمال' : 'Portfolio', href: '#projects' },
+    { label: lang === 'ar' ? 'الاعتمادات والجوائز' : 'Accreditations', href: '#certificates' },
+    { label: lang === 'ar' ? 'خدماتنا' : 'Services', href: '#practice-areas' },
+    { label: lang === 'ar' ? 'حجز موعد' : 'Book Event', href: '#contact' },
   ];
 
   useEffect(() => {
     if (currentView !== 'portfolio') return;
 
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 120;
+      const scrollPosition = window.scrollY + 140;
       for (const link of [...navLinks].reverse()) {
         const section = document.querySelector(link.href);
         if (section && section.offsetTop <= scrollPosition) {
@@ -34,7 +34,7 @@ export const Navbar = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentView]);
+  }, [currentView, lang]);
 
   const scrollToSection = (href) => {
     setMobileMenuOpen(false);
@@ -66,9 +66,9 @@ export const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#e8dfd5] bg-[#faf7f2]/90 backdrop-blur-xl shadow-sm">
+    <header className="sticky top-0 z-40 w-full border-b border-[#e8dfd5] bg-[#faf7f2]/95 backdrop-blur-xl shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+        <div className="flex items-center justify-between h-20 gap-3">
           {/* Brand Logo & Name */}
           <div
             onClick={() => {
@@ -81,43 +81,47 @@ export const Navbar = () => {
             className="flex items-center gap-3.5 cursor-pointer group shrink-0"
           >
             <div className="relative">
-              <div className="w-11 h-11 rounded-xl overflow-hidden ring-2 ring-[#cbb497] group-hover:ring-[#8c6b3e] transition-all shadow-sm">
+              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-[#cbb497] group-hover:ring-stone-900 transition-all shadow-md bg-white p-0.5 flex items-center justify-center">
                 <img
-                  src={data.profile.avatarUrl}
-                  alt={data.profile.fullName}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.target.src = "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600";
-                  }}
+                  src="/logo.png"
+                  alt="KMA Wedding"
+                  className="w-full h-full object-contain rounded-full group-hover:scale-105 transition-transform"
                 />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-amber-600 border-2 border-[#faf7f2] rounded-full" title="Active on Judicial Bench"></span>
+              <span
+                className="absolute -bottom-0.5 -right-0.5 rtl:-right-auto rtl:-left-0.5 w-3.5 h-3.5 bg-amber-600 border-2 border-[#faf7f2] rounded-full"
+                title={lang === 'ar' ? 'فريق KMA متاح للحجوزات' : 'Available for Booking'}
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-bold tracking-tight text-stone-900 group-hover:text-amber-800 transition-colors judicial-heading">
-                  {data.profile.fullName}
+                <span className="text-lg sm:text-xl font-extrabold tracking-tight text-stone-900 group-hover:text-amber-800 transition-colors judicial-heading">
+                  KMA
                 </span>
-                <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-900 rounded-full border border-amber-300/80">
-                  Judicial Bench
+                <span className="text-xs uppercase tracking-widest text-stone-500 font-light font-sans">
+                  wedding
+                </span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded-full border border-amber-300/80">
+                  <Film className="w-3 h-3 text-amber-800" />
+                  <span>{lang === 'ar' ? 'إنتاج إعلامي وسينمائي' : 'Media & Cinema'}</span>
                 </span>
               </div>
-              <p className="text-xs text-stone-500 truncate max-w-[170px] sm:max-w-[250px] font-medium">
-                {data.profile.title}
+              <p className="text-xs text-stone-500 truncate max-w-[190px] sm:max-w-[280px] font-medium">
+                {t(data.profile.title)}
               </p>
             </div>
           </div>
 
           {/* Desktop Navigation Links */}
           {currentView === 'portfolio' ? (
-            <nav className="hidden lg:flex items-center gap-1 bg-[#f4ece1]/80 px-3 py-1.5 rounded-2xl border border-[#e5dacb] shadow-inner">
+            <nav className="hidden xl:flex items-center gap-1 bg-[#f4ece1]/80 px-3 py-1.5 rounded-2xl border border-[#e5dacb] shadow-inner">
               {navLinks.map((link) => {
                 const isActive = activeSection === link.href.replace('#', '');
                 return (
                   <button
                     key={link.label}
                     onClick={() => scrollToSection(link.href)}
-                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${
+                    className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all whitespace-nowrap ${
                       isActive
                         ? 'bg-amber-800 text-white shadow-md shadow-amber-900/20 font-bold'
                         : 'text-stone-700 hover:text-stone-950 hover:bg-[#e9ded0]'
@@ -129,66 +133,46 @@ export const Navbar = () => {
               })}
             </nav>
           ) : (
-            <div className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#f4ece1] border border-[#e5dacb] text-xs text-stone-600 font-medium">
-              <Scale className="w-4 h-4 text-amber-800" />
-              <span>Chambers & Credentials Management Mode</span>
+            <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#f4ece1] border border-[#e5dacb] text-xs text-stone-600 font-medium">
+              <Camera className="w-4 h-4 text-amber-800" />
+              <span>{lang === 'ar' ? 'لوحة تحكم وتعديل بيانات KMA' : 'KMA Media Admin Mode'}</span>
             </div>
           )}
 
           {/* Right Action Buttons */}
-          <div className="hidden md:flex items-center gap-3 shrink-0">
-            {currentView === 'portfolio' ? (
-              <>
-                <button
-                  onClick={() => scrollToSection('#contact')}
-                  className="px-4 py-2 text-xs font-semibold text-stone-700 hover:text-stone-950 bg-white hover:bg-[#f6eee4] border border-[#e2d7c8] rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
-                >
-                  <Send className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Contact Chambers</span>
-                </button>
+          <div className="flex items-center gap-2.5 shrink-0">
+            {/* Language Switcher */}
+            {/* <button
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-[#f6eee4] text-stone-800 border border-[#ded0bf] shadow-sm transition-all hover:border-amber-700"
+              title={lang === 'ar' ? 'Switch to English' : 'التحويل للغة العربية'}
+            >
+              <Globe className="w-3.5 h-3.5 text-amber-800" />
+              <span className="font-mono uppercase">{lang === 'ar' ? 'English' : 'عربي'}</span>
+            </button> */}
 
-                <button
-                  onClick={() => navigateTo('admin')}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md shadow-amber-900/15 transform hover:-translate-y-0.5"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Manage / Edit</span>
-                </button>
-              </>
+            {currentView === 'portfolio' ? (
+              <button
+                onClick={() => scrollToSection('#contact')}
+                className="hidden md:flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md shadow-amber-950/15"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{lang === 'ar' ? 'احجز موعد حفل زفافك' : 'Book Your Wedding'}</span>
+              </button>
             ) : (
               <button
                 onClick={() => navigateTo('portfolio')}
-                className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md shadow-amber-900/15"
+                className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md"
               >
                 <Eye className="w-4 h-4" />
-                <span>View Public Portfolio</span>
-              </button>
-            )}
-          </div>
-
-          {/* Mobile buttons */}
-          <div className="flex items-center gap-2 lg:hidden">
-            {currentView === 'portfolio' ? (
-              <button
-                onClick={() => navigateTo('admin')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-800 text-white text-xs font-bold shadow-sm"
-              >
-                <Settings className="w-3.5 h-3.5" />
-                <span>Edit</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => navigateTo('portfolio')}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-800 text-white text-xs font-bold shadow-sm"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>View</span>
+                <span>{lang === 'ar' ? 'معاينة الموقع' : 'Public Showcase'}</span>
               </button>
             )}
 
+            {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-stone-700 hover:text-stone-950 bg-white border border-[#e2d7c8] rounded-xl shadow-sm"
+              className="p-2 text-stone-700 hover:text-stone-950 bg-white border border-[#e2d7c8] rounded-xl shadow-sm xl:hidden"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -199,7 +183,7 @@ export const Navbar = () => {
 
       {/* Mobile Dropdown Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#e8dfd5] bg-[#faf7f2]/98 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-2 shadow-xl animate-fade-in">
+        <div className="xl:hidden border-t border-[#e8dfd5] bg-[#faf7f2]/98 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-2 shadow-xl animate-fade-in">
           {currentView === 'portfolio' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
               {navLinks.map((link) => {
@@ -208,14 +192,14 @@ export const Navbar = () => {
                   <button
                     key={link.label}
                     onClick={() => scrollToSection(link.href)}
-                    className={`px-4 py-2.5 text-xs font-semibold rounded-xl text-left transition-all flex items-center justify-between ${
+                    className={`px-4 py-2.5 text-xs font-semibold rounded-xl text-left rtl:text-right transition-all flex items-center justify-between ${
                       isActive
                         ? 'bg-amber-800 text-white font-bold'
                         : 'bg-white text-stone-700 hover:bg-[#f6eee4] hover:text-stone-950 border border-[#e2d7c8]'
                     }`}
                   >
                     <span>{link.label}</span>
-                    <ArrowRight className="w-3.5 h-3.5 opacity-60" />
+                    <ArrowRight className="w-3.5 h-3.5 opacity-60 rtl:rotate-180" />
                   </button>
                 );
               })}
@@ -223,29 +207,13 @@ export const Navbar = () => {
           )}
 
           <div className="pt-2 border-t border-[#e8dfd5] flex flex-col gap-2">
-            {currentView === 'portfolio' ? (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  navigateTo('admin');
-                }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 rounded-xl shadow-md"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Open Judicial Management Portal</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  navigateTo('portfolio');
-                }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold text-white bg-amber-800 rounded-xl"
-              >
-                <Eye className="w-4 h-4" />
-                <span>Return to Public Showcase</span>
-              </button>
-            )}
+            <button
+              onClick={() => scrollToSection('#contact')}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 rounded-xl shadow-md"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'احجز موعد حفل زفافك / مناسبتك الآن' : 'Book Your Event / Wedding Now'}</span>
+            </button>
           </div>
         </div>
       )}
