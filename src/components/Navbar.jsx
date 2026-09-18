@@ -83,9 +83,10 @@ export const Navbar = () => {
             <div className="relative">
               <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-[#cbb497] group-hover:ring-stone-900 transition-all shadow-md bg-white p-0.5 flex items-center justify-center">
                 <img
-                  src="/logo.png"
-                  alt="KMA Wedding"
+                  src={data.profile.logoUrl || data.profile.avatarUrl || "/logo.png"}
+                  alt={t(data.profile.shortName) || "KMA"}
                   className="w-full h-full object-contain rounded-full group-hover:scale-105 transition-transform"
+                  onError={(e) => { e.target.src = "/logo.png"; }}
                 />
               </div>
               <span

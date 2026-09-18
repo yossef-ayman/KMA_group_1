@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { DEFAULT_PORTFOLIO_DATA } from '../data/defaultData';
+import { THEME_PRESETS } from '../data/themes';
 
 const STORAGE_KEY = 'kma_wedding_media_production_en_v6';
 const STORAGE_LANG_KEY = 'kma_wedding_lang_en_v4';
-
 const STORAGE_BOOKINGS_KEY = 'kma_wedding_bookings_v1';
+const STORAGE_THEME_KEY = 'kma_wedding_theme_v1';
+const STORAGE_PASSCODE_KEY = 'kma_admin_passcode_v1';
+const SESSION_AUTH_KEY = 'kma_admin_auth_session_v1';
 
 const PortfolioContext = createContext(null);
 
@@ -38,6 +41,90 @@ export const PortfolioProvider = ({ children }) => {
     }
     return 'en'; // Default to English
   });
+
+  // Admin Security & Passcode Gate
+  const [adminPasscode, setAdminPasscode] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_PASSCODE_KEY) || 'kma2026';
+    } catch (e) {
+      return 'kma2026';
+    }
+  });
+
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem(SESSION_AUTH_KEY) === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const loginAdmin = (inputPasscode) => {
+    if (inputPasscode === adminPasscode) {
+      setIsAdminAuthenticated(true);
+      try {
+        sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
+      } catch (e) {}
+      showToast(lang === 'ar' ? 'تم تسجيل الدخول للوحة الإدارة بنجاح' : 'Admin session authenticated successfully!');
+      return true;
+    }
+    showToast(lang === 'ar' ? 'الرقم السري غير صحيح' : 'Invalid admin passcode.', 'error');
+    return false;
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+    try {
+      sessionStorage.removeItem(SESSION_AUTH_KEY);
+    } catch (e) {}
+    showToast(lang === 'ar' ? 'تم تسجيل الخروج' : 'Admin session ended.', 'info');
+  };
+
+  const updateAdminPasscode = (newCode) => {
+    if (!newCode || newCode.length < 4) {
+      showToast(lang === 'ar' ? 'الرمز يجب أن يكون 4 خانات على الأقل' : 'Passcode must be at least 4 characters.', 'error');
+      return false;
+    }
+    setAdminPasscode(newCode);
+    try {
+      localStorage.setItem(STORAGE_PASSCODE_KEY, newCode);
+    } catch (e) {}
+    showToast(lang === 'ar' ? 'تم تحديث الرقم السري بنجاح' : 'Admin passcode updated successfully!');
+    return true;
+  };
+
+  // Theme state: defaults to 'gold'
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem(STORAGE_THEME_KEY);
+      if (savedTheme && THEME_PRESETS.some(t => t.id === savedTheme)) {
+        return savedTheme;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return 'gold';
+  });
+
+  // Apply theme to document
+  useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      localStorage.setItem(STORAGE_THEME_KEY, currentTheme);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentTheme]);
+
+  const setTheme = (themeId) => {
+    setCurrentTheme(themeId);
+    const themeObj = THEME_PRESETS.find(t => t.id === themeId);
+    showToast(
+      lang === 'ar'
+        ? `تم تفعيل ثيم: ${themeObj?.name || themeId}`
+        : `Theme switched to: ${themeObj?.name || themeId}`
+    );
+  };
 
   const [data, setData] = useState(() => {
     try {
@@ -120,6 +207,94 @@ export const PortfolioProvider = ({ children }) => {
     setBookings((prev) =>
       prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
     );
+  };
+
+  // Dispatch live email to KMA inbox via free Web3Forms API
+  const sendBookingEmail = async (bookingData) => {
+    const accessKey = data.profile?.web3formsKey?.trim();
+    const destinationEmail = data.profile?.notificationEmail?.trim() || data.profile?.email || 'contact@kmawedding.com';
+
+    if (accessKey) {
+      try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          body: JSON.stringify({
+            access_key: accessKey,
+            subject: `New Event Booking: ${bookingData.name} - KMA Production`,
+            from_name: `KMA Booking System (${bookingData.name})`,
+            to_email: destinationEmail,
+            client_name: bookingData.name,
+            client_phone: bookingData.phone,
+            client_email: bookingData.email,
+            event_type: bookingData.eventType,
+            event_date: bookingData.eventDate || 'Not specified',
+            event_location: bookingData.location || 'Not specified',
+            client_message: bookingData.message
+          })
+        });
+        const result = await response.json();
+        return { success: result.success, message: result.message };
+      } catch (err) {
+        console.error('Email service error:', err);
+        return { success: false, error: err.message };
+      }
+    }
+    return { success: true, isLocalOnly: true };
+  };
+
+  // Test live email delivery
+  const sendTestEmail = async () => {
+    const accessKey = data.profile?.web3formsKey?.trim();
+    const destinationEmail = data.profile?.notificationEmail?.trim() || data.profile?.email || 'contact@kmawedding.com';
+
+    if (!accessKey) {
+      showToast(
+        lang === 'ar'
+          ? 'يرجى كتابة Web3Forms Access Key أولاً لإرسال إيميل حقيقي.'
+          : 'Please enter your Web3Forms Access Key first to send live test emails.',
+        'error'
+      );
+      return false;
+    }
+
+    try {
+      showToast(lang === 'ar' ? 'جارٍ إرسال رسالة تجريبية للإيميل...' : 'Sending test email...', 'info');
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          subject: 'KMA Wedding Production - Test Email Notification',
+          from_name: 'KMA System Check',
+          to_email: destinationEmail,
+          status: 'SUCCESSFUL_SETUP',
+          message: 'Congratulations! Your free KMA email notification system is configured and working perfectly.'
+        })
+      });
+      const result = await response.json();
+      if (result.success) {
+        showToast(
+          lang === 'ar'
+            ? `وصلت الرسالة التجريبية بنجاح إلى ${destinationEmail}!`
+            : `Test email sent successfully to ${destinationEmail}!`,
+          'success'
+        );
+        return true;
+      } else {
+        showToast(result.message || 'Failed to send test email', 'error');
+        return false;
+      }
+    } catch (err) {
+      showToast('Connection error: ' + err.message, 'error');
+      return false;
+    }
   };
 
   // Current view: 'portfolio' or 'admin'
@@ -223,10 +398,21 @@ export const PortfolioProvider = ({ children }) => {
         ...profileUpdates
       }
     }));
-    showToast(lang === 'ar' ? 'تم تحديث بيانات الشركة بنجاح!' : 'Company information updated successfully!');
+    showToast(lang === 'ar' ? 'تم تحديث بيانات الشركة بنجاح!' : 'Studio & Brand profile updated successfully!');
   };
 
-  // Certificate methods
+  const updateStats = (newStats) => {
+    setData((prev) => ({
+      ...prev,
+      profile: {
+        ...prev.profile,
+        stats: newStats
+      }
+    }));
+    showToast(lang === 'ar' ? 'تم تحديث الإحصائيات بنجاح' : 'Key statistics updated successfully');
+  };
+
+  // Certificate / Permit methods
   const addCertificate = (newCert) => {
     const certWithId = {
       ...newCert,
@@ -273,7 +459,7 @@ export const PortfolioProvider = ({ children }) => {
   const addProject = (newProject) => {
     const projectWithId = {
       ...newProject,
-      id: newProject.id || `deal-${Date.now()}`
+      id: newProject.id || `proj-${Date.now()}`
     };
     setData((prev) => ({
       ...prev,
@@ -301,6 +487,75 @@ export const PortfolioProvider = ({ children }) => {
     showToast(lang === 'ar' ? 'تم حذف الفيلم' : 'Film removed', 'info');
   };
 
+  // Services (Practice Areas) CRUD
+  const addService = (newService) => {
+    const serviceWithId = {
+      ...newService,
+      id: newService.id || `service-${Date.now()}`
+    };
+    setData((prev) => ({
+      ...prev,
+      practiceAreas: [...(prev.practiceAreas || []), serviceWithId]
+    }));
+    showToast(lang === 'ar' ? 'تمت إضافة باقة الخدمة بنجاح' : 'Service package added successfully');
+    return serviceWithId;
+  };
+
+  const updateService = (id, updatedFields) => {
+    setData((prev) => ({
+      ...prev,
+      practiceAreas: (prev.practiceAreas || []).map((s) =>
+        s.id === id ? { ...s, ...updatedFields } : s
+      )
+    }));
+    showToast(lang === 'ar' ? 'تم حفظ باقة الخدمة بنجاح' : 'Service package updated successfully');
+  };
+
+  const deleteService = (id) => {
+    setData((prev) => ({
+      ...prev,
+      practiceAreas: (prev.practiceAreas || []).filter((s) => s.id !== id)
+    }));
+    showToast(lang === 'ar' ? 'تم حذف باقة الخدمة' : 'Service package removed', 'info');
+  };
+
+  // Milestones CRUD
+  const addMilestone = (newMilestone) => {
+    setData((prev) => ({
+      ...prev,
+      milestones: [newMilestone, ...(prev.milestones || [])]
+    }));
+    showToast(lang === 'ar' ? 'تمت إضافة المحطة التاريخية' : 'Milestone added successfully');
+  };
+
+  const updateMilestone = (index, updatedFields) => {
+    setData((prev) => {
+      const list = [...(prev.milestones || [])];
+      if (list[index]) {
+        list[index] = { ...list[index], ...updatedFields };
+      }
+      return { ...prev, milestones: list };
+    });
+    showToast(lang === 'ar' ? 'تم حفظ محطة النجاح' : 'Milestone updated successfully');
+  };
+
+  const deleteMilestone = (index) => {
+    setData((prev) => ({
+      ...prev,
+      milestones: (prev.milestones || []).filter((_, i) => i !== index)
+    }));
+    showToast(lang === 'ar' ? 'تم حذف المحطة' : 'Milestone removed', 'info');
+  };
+
+  // Skills update
+  const updateSkills = (newSkills) => {
+    setData((prev) => ({
+      ...prev,
+      skills: newSkills
+    }));
+    showToast(lang === 'ar' ? 'تم تحديث المعدات والمهارات' : 'Gear & Capabilities updated successfully');
+  };
+
   // Reset to default
   const resetToDefault = () => {
     const confirmMsg =
@@ -324,27 +579,11 @@ export const PortfolioProvider = ({ children }) => {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast(lang === 'ar' ? 'تم تصدير نسخة احتياطية من البيانات' : 'KMA data exported successfully!');
+      showToast(lang === 'ar' ? 'تم تصدير نسخة احتياطية من البيانات' : 'KMA complete data exported successfully!');
     } catch (e) {
       console.error(e);
       showToast(lang === 'ar' ? 'فشل التصدير' : 'Failed to export backup.', 'error');
     }
-  };
-
-  const updateSkills = (newSkills) => {
-    setData((prev) => ({
-      ...prev,
-      skills: newSkills
-    }));
-    showToast(lang === 'ar' ? 'تم تحديث المهارات' : 'Skills updated!');
-  };
-
-  const updateExperience = (newExp) => {
-    setData((prev) => ({
-      ...prev,
-      experience: newExp
-    }));
-    showToast(lang === 'ar' ? 'تم تحديث الخبرات' : 'Experience updated!');
   };
 
   // Import JSON backup file
@@ -353,7 +592,7 @@ export const PortfolioProvider = ({ children }) => {
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target.result);
-        if (parsed.profile && parsed.certificates) {
+        if (parsed.profile && (parsed.certificates || parsed.projects)) {
           setData(parsed);
           showToast(lang === 'ar' ? 'تم استيراد البيانات بنجاح' : 'Data imported from JSON successfully!');
         } else {
@@ -384,19 +623,46 @@ export const PortfolioProvider = ({ children }) => {
         setEditingCertId,
         toast,
         showToast,
+        // Theme
+        currentTheme,
+        setTheme,
+        THEME_PRESETS,
+        // Admin Security
+        adminPasscode,
+        isAdminAuthenticated,
+        loginAdmin,
+        logoutAdmin,
+        updateAdminPasscode,
+        // Email & Notification
+        sendBookingEmail,
+        sendTestEmail,
+        // Profile & Stats
         updateProfile,
+        updateStats,
+        // Certificates
         addCertificate,
         updateCertificate,
         deleteCertificate,
         refreshCertificates,
+        // Projects
         addProject,
         updateProject,
         deleteProject,
+        // Services
+        addService,
+        updateService,
+        deleteService,
+        // Milestones
+        addMilestone,
+        updateMilestone,
+        deleteMilestone,
+        // Skills
         updateSkills,
-        updateExperience,
+        // Backup
         resetToDefault,
         exportDataJSON,
         importDataJSON,
+        // Bookings
         bookings,
         addBooking,
         deleteBooking,

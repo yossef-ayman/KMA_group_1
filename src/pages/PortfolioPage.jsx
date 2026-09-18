@@ -32,8 +32,11 @@ export const PortfolioPage = () => {
     setActiveModalProject,
     refreshCertificates,
     addBooking,
+    sendBookingEmail,
     showToast
   } = usePortfolio();
+
+  const [lastBookingSubmitted, setLastBookingSubmitted] = useState(null);
 
   // Projects filter and search state
   const [projectFilter, setProjectFilter] = useState('all');
@@ -108,7 +111,7 @@ export const PortfolioPage = () => {
     }, 600);
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.phone || !contactForm.message) {
       showToast(
@@ -120,40 +123,58 @@ export const PortfolioPage = () => {
       return;
     }
     setIsSending(true);
-    setTimeout(() => {
-      // Save booking in state/localStorage (client-side only, zero backend)
-      addBooking({
-        name: contactForm.name.trim(),
-        phone: contactForm.phone.trim(),
-        email: contactForm.email.trim(),
-        eventType: contactForm.eventType,
-        eventDate: contactForm.eventDate,
-        location: contactForm.location.trim(),
-        message: contactForm.message.trim()
-      });
 
-      setIsSending(false);
+    const bookingPayload = {
+      name: contactForm.name.trim(),
+      phone: contactForm.phone.trim(),
+      email: contactForm.email.trim(),
+      eventType: contactForm.eventType,
+      eventDate: contactForm.eventDate,
+      location: contactForm.location.trim(),
+      message: contactForm.message.trim()
+    };
+
+    // 1. Record client-side in state & localStorage
+    addBooking(bookingPayload);
+    setLastBookingSubmitted(bookingPayload);
+
+    // 2. Dispatch live email via Web3Forms API
+    const emailResult = await sendBookingEmail(bookingPayload);
+
+    setIsSending(false);
+
+    if (emailResult.success && !emailResult.isLocalOnly) {
       showToast(
         lang === 'ar'
-          ? `ألف مبروك يا ${contactForm.name}! تم استلام طلب الحجز وظهر في لوحة الإدارة.`
-          : `Thank you, ${contactForm.name}! Your booking request has been submitted and recorded in the Admin Panel.`
+          ? `ألف مبروك يا ${contactForm.name}! تم استلام طلب الحجز وإرسال إشعار فوري للإيميل.`
+          : `Thank you, ${contactForm.name}! Your booking request was recorded and emailed to KMA management!`,
+        'success'
       );
-      confetti({
-        particleCount: 130,
-        spread: 85,
-        origin: { y: 0.65 },
-        colors: ['#b45309', '#78350f', '#d97706', '#f5ebd8', '#fbbf24', '#f43f5e']
-      });
-      setContactForm({
-        name: '',
-        phone: '',
-        email: '',
-        eventType: 'wedding',
-        eventDate: '',
-        location: '',
-        message: ''
-      });
-    }, 850);
+    } else {
+      showToast(
+        lang === 'ar'
+          ? `ألف مبروك يا ${contactForm.name}! تم استلام طلب الحجز وتسجيله في لوحة الإدارة.`
+          : `Thank you, ${contactForm.name}! Your booking request was submitted and recorded in the Admin Panel.`,
+        'success'
+      );
+    }
+
+    confetti({
+      particleCount: 130,
+      spread: 85,
+      origin: { y: 0.65 },
+      colors: ['#b45309', '#78350f', '#d97706', '#f5ebd8', '#fbbf24', '#f43f5e']
+    });
+
+    setContactForm({
+      name: '',
+      phone: '',
+      email: '',
+      eventType: 'wedding',
+      eventDate: '',
+      location: '',
+      message: ''
+    });
   };
 
   // Scroll reveal observer
@@ -271,7 +292,7 @@ export const PortfolioPage = () => {
                 className="reveal grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-6 border-t border-[#e8dfd5]"
                 style={{ transitionDelay: '240ms' }}
               >
-                {data.profile.stats.map((stat, idx) => (
+                {(data.profile?.stats || []).map((stat, idx) => (
                   <div
                     key={idx}
                     className="p-4 rounded-2xl bg-white/95 border border-[#e8dfd5] text-center shadow-sm hover:border-amber-400 transition-colors"
@@ -300,9 +321,10 @@ export const PortfolioPage = () => {
                   {/* Central KMA Logo */}
                   <div className="w-48 h-48 sm:w-56 sm:h-56 mx-auto rounded-full bg-white p-3 shadow-xl ring-4 ring-[#dfd2c0]/60 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500">
                     <img
-                      src="/logo.png"
-                      alt="KMA Wedding Logo"
+                      src={data.profile.logoUrl || data.profile.avatarUrl || "/logo.png"}
+                      alt={t(data.profile.fullName)}
                       className="w-full h-full object-contain rounded-full"
+                      onError={(e) => { e.target.src = "/logo.png"; }}
                     />
                   </div>
 
@@ -972,6 +994,37 @@ export const PortfolioPage = () => {
                       </>
                     )}
                   </button>
+
+                  {lastBookingSubmitted && (
+                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2.5 animate-fade-in">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <span className="text-xs font-bold">
+                          {lang === 'ar'
+                            ? `شكراً لك ${lastBookingSubmitted.name}! تم استلام وتسجيل طلبك بنجاح.`
+                            : `Thank you, ${lastBookingSubmitted.name}! Your request has been recorded.`}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-800 leading-relaxed">
+                        {lang === 'ar'
+                          ? 'يمكنك أيضاً إرسال نسخة فورية ومباشرة من تفاصيل حجزك عبر الواتساب لتأكيد موعدك أسرع مع فريق KMA.'
+                          : 'You can also send a direct instant copy via WhatsApp to confirm availability immediately with KMA.'}
+                      </p>
+                      {data.profile?.phone && (
+                        <a
+                          href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                            `Hello KMA Production! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>{lang === 'ar' ? 'تأكيد الحجز فوراً عبر واتساب' : 'Confirm Instantly via WhatsApp'}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </form>
               </div>
             </div>

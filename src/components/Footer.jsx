@@ -17,9 +17,10 @@ export const Footer = () => {
           <div className="flex items-center gap-4 text-center md:text-left rtl:md:text-right">
             <div className="w-14 h-14 rounded-full bg-white p-1 shadow-sm border border-[#dfd2c0] shrink-0 overflow-hidden">
               <img
-                src="/logo.png"
+                src={data.profile.logoUrl || data.profile.avatarUrl || "/logo.png"}
                 alt="KMA Wedding"
                 className="w-full h-full object-contain rounded-full"
+                onError={(e) => { e.target.src = "/logo.png"; }}
               />
             </div>
             <div className="space-y-1">
