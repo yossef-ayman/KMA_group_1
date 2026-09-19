@@ -37,15 +37,8 @@ export const Footer = () => {
                     : 'Premier Cinematography & Luxury Wedding Media Production'}
                 </span>
               </div>
-              <p className="text-xs text-stone-500 flex items-center justify-center md:justify-start gap-2">
+              <p className="text-xs text-stone-500 flex items-center justify-center md:justify-start">
                 <span>© {new Date().getFullYear()} KMA Wedding. All rights reserved.</span>
-                <span>•</span>
-                <a
-                  href="#admin"
-                  className="text-stone-400 hover:text-amber-800 transition-colors underline"
-                >
-                  Admin Portal
-                </a>
               </p>
             </div>
           </div>

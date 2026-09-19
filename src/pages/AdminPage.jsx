@@ -71,6 +71,9 @@ export const AdminPage = () => {
     currentTheme,
     setTheme,
     THEME_PRESETS,
+    bgTone,
+    setBackgroundTone,
+    BG_TONES,
     adminPasscode,
     isAdminAuthenticated,
     loginAdmin,
@@ -882,6 +885,58 @@ export const AdminPage = () => {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Background Canvas Tone Selection */}
+            <div className="pt-8 border-t border-[#e8dfd5] space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-stone-900 font-serif flex items-center gap-2">
+                  <span>Background Canvas Tone (لون خلفية الموقع)</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 border border-stone-200">
+                    Beige / White / Dark
+                  </span>
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Change the global background mood of the website (e.g. Warm Luxury Beige, Pure White, or Dark Cinema).
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+                {(BG_TONES || []).map((bgItem) => {
+                  const isBgActive = (bgTone || 'beige') === bgItem.id;
+                  return (
+                    <div
+                      key={bgItem.id}
+                      onClick={() => setBackgroundTone(bgItem.id)}
+                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
+                        isBgActive
+                          ? 'border-amber-700 bg-amber-50/50 shadow-md ring-2 ring-amber-700/20'
+                          : 'border-[#ded0bf] bg-[#fbf9f6] hover:border-stone-400 hover:bg-white shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div
+                          className="w-7 h-7 rounded-xl border border-stone-300 shadow-sm"
+                          style={{ backgroundColor: bgItem.bg }}
+                        />
+                        {isBgActive && (
+                          <span className="p-0.5 rounded-full bg-amber-800 text-white">
+                            <Check className="w-3 h-3" />
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-stone-900 block font-serif">
+                          {bgItem.name}
+                        </span>
+                        <span className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
+                          {bgItem.desc}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Live Interactive Sample Preview */}

@@ -78,3 +78,46 @@ export const THEME_PRESETS = [
     previewColors: ['#581c87', '#7e22ce', '#d8b4fe', '#f3e8ff']
   }
 ];
+
+export const BG_TONES = [
+  {
+    id: 'beige',
+    name: 'Warm Royal Beige (Default)',
+    desc: 'Classic warm luxury beige canvas (#faf7f2)',
+    bg: '#faf7f2',
+    subtle: '#f5ece1',
+    border: '#e8dfd5'
+  },
+  {
+    id: 'white',
+    name: 'Pure Minimalist White',
+    desc: 'Clean modern white background (#ffffff)',
+    bg: '#ffffff',
+    subtle: '#f8f9fa',
+    border: '#e2e8f0'
+  },
+  {
+    id: 'ivory',
+    name: 'Champagne Ivory',
+    desc: 'Soft warm antique ivory (#f7f4ed)',
+    bg: '#f7f4ed',
+    subtle: '#efe9dc',
+    border: '#e2d9ca'
+  },
+  {
+    id: 'pearl',
+    name: 'Cool Pearl Gray',
+    desc: 'Modern sleek studio aesthetic (#f8fafc)',
+    bg: '#f8fafc',
+    subtle: '#f1f5f9',
+    border: '#e2e8f0'
+  },
+  {
+    id: 'dark',
+    name: 'Dark Cinema Noir',
+    desc: 'Nighttime high-fashion cinema palette (#0f0f12)',
+    bg: '#0f0f12',
+    subtle: '#18181b',
+    border: '#27272a'
+  }
+];

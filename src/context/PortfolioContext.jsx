@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { DEFAULT_PORTFOLIO_DATA } from '../data/defaultData';
-import { THEME_PRESETS } from '../data/themes';
+import { THEME_PRESETS, BG_TONES } from '../data/themes';
 
 const STORAGE_KEY = 'kma_wedding_media_production_en_v6';
 const STORAGE_LANG_KEY = 'kma_wedding_lang_en_v4';
 const STORAGE_BOOKINGS_KEY = 'kma_wedding_bookings_v1';
 const STORAGE_THEME_KEY = 'kma_wedding_theme_v1';
+const STORAGE_BGTONE_KEY = 'kma_wedding_bgtone_v1';
 const STORAGE_PASSCODE_KEY = 'kma_admin_passcode_v1';
 const SESSION_AUTH_KEY = 'kma_admin_auth_session_v1';
 
@@ -123,6 +124,39 @@ export const PortfolioProvider = ({ children }) => {
       lang === 'ar'
         ? `تم تفعيل ثيم: ${themeObj?.name || themeId}`
         : `Theme switched to: ${themeObj?.name || themeId}`
+    );
+  };
+
+  // Background Canvas Tone state: defaults to 'beige'
+  const [bgTone, setBgTone] = useState(() => {
+    try {
+      const savedTone = localStorage.getItem(STORAGE_BGTONE_KEY);
+      if (savedTone && BG_TONES.some(b => b.id === savedTone)) {
+        return savedTone;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return 'beige';
+  });
+
+  // Apply background tone to document
+  useEffect(() => {
+    try {
+      document.documentElement.setAttribute('data-bgtone', bgTone);
+      localStorage.setItem(STORAGE_BGTONE_KEY, bgTone);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [bgTone]);
+
+  const setBackgroundTone = (toneId) => {
+    setBgTone(toneId);
+    const toneObj = BG_TONES.find(b => b.id === toneId);
+    showToast(
+      lang === 'ar'
+        ? `تم تفعيل لون الخلفية: ${toneObj?.name || toneId}`
+        : `Background updated to: ${toneObj?.name || toneId}`
     );
   };
 
@@ -623,10 +657,13 @@ export const PortfolioProvider = ({ children }) => {
         setEditingCertId,
         toast,
         showToast,
-        // Theme
+        // Theme & Background
         currentTheme,
         setTheme,
         THEME_PRESETS,
+        bgTone,
+        setBackgroundTone,
+        BG_TONES,
         // Admin Security
         adminPasscode,
         isAdminAuthenticated,
