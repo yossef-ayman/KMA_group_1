@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Eye, Send, ArrowRight, Camera, Sparkles, Globe, Film } from 'lucide-react';
+import { Menu, X, Eye, ArrowRight, Camera, Sparkles, Film } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 
 export const Navbar = () => {
-  const { data, lang, toggleLanguage, t, currentView, navigateTo } = usePortfolio();
+  const { data, t, currentView, navigateTo } = usePortfolio();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
 
   const navLinks = [
-    { label: lang === 'ar' ? 'الرؤية والرسالة' : 'Vision & About', href: '#about' },
-    { label: lang === 'ar' ? 'أبرز الأرقام' : 'Highlights', href: '#stats' },
-    { label: lang === 'ar' ? 'شركاء وأماكن التصوير' : 'Venues & Partners', href: '#partners' },
-    { label: lang === 'ar' ? 'معرض الأفلام' : 'Films & Works', href: '#projects' },
-    { label: lang === 'ar' ? 'حجز موعد VIP' : 'VIP Booking', href: '#contact' },
+    { label: 'Vision & About', href: '#about' },
+    { label: 'Key Highlights', href: '#stats' },
+    { label: 'Venues & Partners', href: '#partners' },
+    { label: 'Films & Showcase', href: '#projects' },
+    { label: 'VIP Booking', href: '#contact' },
   ];
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export const Navbar = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [currentView, lang]);
+  }, [currentView]);
 
   const scrollToSection = (href) => {
     setMobileMenuOpen(false);
@@ -90,8 +90,8 @@ export const Navbar = () => {
                 />
               </div>
               <span
-                className="absolute -bottom-0.5 -right-0.5 rtl:-right-auto rtl:-left-0.5 w-3.5 h-3.5 bg-amber-600 border-2 border-[#faf7f2] rounded-full"
-                title={lang === 'ar' ? 'فريق KMA متاح للحجوزات' : 'Available for Booking'}
+                className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-amber-600 border-2 border-[#faf7f2] rounded-full"
+                title="Available for Booking"
               />
             </div>
             <div>
@@ -104,7 +104,7 @@ export const Navbar = () => {
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded-full border border-amber-300/80">
                   <Film className="w-3 h-3 text-amber-800" />
-                  <span>{lang === 'ar' ? 'إنتاج سينمائي' : 'Cinema & Media'}</span>
+                  <span>Cinema & Media</span>
                 </span>
               </div>
               <p className="text-xs text-stone-500 truncate max-w-[190px] sm:max-w-[280px] font-medium">
@@ -136,29 +136,19 @@ export const Navbar = () => {
           ) : (
             <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#f4ece1] border border-[#e5dacb] text-xs text-stone-600 font-medium">
               <Camera className="w-4 h-4 text-amber-800" />
-              <span>{lang === 'ar' ? `لوحة تحكم وتعديل ${t(data.profile?.shortName) || 'KMA'}` : `${t(data.profile?.shortName) || 'KMA'} Media Admin Mode`}</span>
+              <span>{`${t(data.profile?.shortName) || 'KMA'} Media Admin Mode`}</span>
             </div>
           )}
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2.5 shrink-0">
-            {/* Language Switcher */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-[#f6eee4] text-stone-800 border border-[#ded0bf] shadow-sm transition-all hover:border-amber-700"
-              title={lang === 'ar' ? 'Switch to English' : 'التحويل للغة العربية'}
-            >
-              <Globe className="w-3.5 h-3.5 text-amber-800" />
-              <span className="font-semibold">{lang === 'ar' ? 'English' : 'عربي'}</span>
-            </button>
-
             {currentView === 'portfolio' ? (
               <button
                 onClick={() => scrollToSection('#contact')}
                 className="hidden md:flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md shadow-amber-950/15"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{lang === 'ar' ? 'احجز موعد حفل زفافك' : 'Book Your Wedding'}</span>
+                <span>Book Your Wedding</span>
               </button>
             ) : (
               <button
@@ -166,7 +156,7 @@ export const Navbar = () => {
                 className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md"
               >
                 <Eye className="w-4 h-4" />
-                <span>{lang === 'ar' ? 'معاينة الموقع' : 'Public Showcase'}</span>
+                <span>Public Showcase</span>
               </button>
             )}
 
@@ -193,14 +183,14 @@ export const Navbar = () => {
                   <button
                     key={link.label}
                     onClick={() => scrollToSection(link.href)}
-                    className={`px-4 py-2.5 text-xs font-semibold rounded-xl text-left rtl:text-right transition-all flex items-center justify-between ${
+                    className={`px-4 py-2.5 text-xs font-semibold rounded-xl text-left transition-all flex items-center justify-between ${
                       isActive
                         ? 'bg-amber-800 text-white font-bold'
                         : 'bg-white text-stone-700 hover:bg-[#f6eee4] hover:text-stone-950 border border-[#e2d7c8]'
                     }`}
                   >
                     <span>{link.label}</span>
-                    <ArrowRight className="w-3.5 h-3.5 opacity-60 rtl:rotate-180" />
+                    <ArrowRight className="w-3.5 h-3.5 opacity-60" />
                   </button>
                 );
               })}
@@ -209,22 +199,11 @@ export const Navbar = () => {
 
           <div className="pt-2 border-t border-[#e8dfd5] flex flex-col gap-2">
             <button
-              onClick={() => {
-                toggleLanguage();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-stone-800 bg-white hover:bg-[#f6eee4] rounded-xl border border-[#ded0bf] shadow-sm transition-all"
-            >
-              <Globe className="w-4 h-4 text-amber-800" />
-              <span>{lang === 'ar' ? 'Switch to English (EN)' : 'التحويل للغة العربية (عربي)'}</span>
-            </button>
-
-            <button
               onClick={() => scrollToSection('#contact')}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 rounded-xl shadow-md"
             >
               <Sparkles className="w-4 h-4" />
-              <span>{lang === 'ar' ? 'احجز موعد حفل زفافك / مناسبتك الآن' : 'Book Your Event / Wedding Now'}</span>
+              <span>Book Your Event / Wedding Now</span>
             </button>
           </div>
         </div>

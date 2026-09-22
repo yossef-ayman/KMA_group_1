@@ -3,7 +3,7 @@ import { X, ExternalLink, Calendar, Copy, Check, Award, ShieldCheck } from 'luci
 import { usePortfolio } from '../context/PortfolioContext';
 
 export const CertificateModal = () => {
-  const { activeModalCert, setActiveModalCert, lang, t } = usePortfolio();
+  const { activeModalCert, setActiveModalCert, t } = usePortfolio();
   const [copied, setCopied] = useState(false);
 
   // Escape-to-close & body scroll lock
@@ -50,7 +50,7 @@ export const CertificateModal = () => {
             </span>
             <span className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-              <span>{lang === 'ar' ? 'اعتماد وترخيص إنتاج إعلامي رسمي' : 'Official Media Accreditation & License'}</span>
+              <span>Official Media Accreditation & License</span>
             </span>
           </div>
           <button
@@ -86,11 +86,11 @@ export const CertificateModal = () => {
               </span>
               <span className="flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-lg bg-white border border-[#e5dacb]">
                 <Calendar className="w-3.5 h-3.5 text-amber-800" />
-                <span>{lang === 'ar' ? 'سنة الإصدار:' : 'Issued:'} {t(cert.issueDate)}</span>
+                <span>Issued: {t(cert.issueDate)}</span>
               </span>
               {cert.expiryDate && (
                 <span className="text-stone-600 font-medium px-2.5 py-1 rounded-lg bg-white border border-[#e5dacb]">
-                  {lang === 'ar' ? 'الحالة:' : 'Status:'} {t(cert.expiryDate)}
+                  <span>Status: {t(cert.expiryDate)}</span>
                 </span>
               )}
             </div>
@@ -108,7 +108,7 @@ export const CertificateModal = () => {
             <div className="flex items-center justify-between p-4 rounded-2xl bg-[#f6eee2] border border-[#e8dfd2]">
               <div className="text-xs">
                 <span className="text-stone-500 block uppercase font-bold text-[10px]">
-                  {lang === 'ar' ? 'رقم القيد / الترخيص بالسجل الرسمي' : 'Official License / Permit ID'}
+                  Official License / Permit ID
                 </span>
                 <span className="font-mono text-stone-900 font-bold text-sm sm:text-base">
                   {cert.credentialId}
@@ -121,12 +121,12 @@ export const CertificateModal = () => {
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>{lang === 'ar' ? 'تم النسخ!' : 'Copied!'}</span>
+                    <span>Copied!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>{lang === 'ar' ? 'نسخ الرقم' : 'Copy ID'}</span>
+                    <span>Copy ID</span>
                   </>
                 )}
               </button>
@@ -137,7 +137,7 @@ export const CertificateModal = () => {
           {cert.skills && cert.skills.length > 0 && (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 mb-3">
-                {lang === 'ar' ? 'المعايير والمجالات المعتمدة' : 'Accredited Domains & Standards'}
+                Accredited Domains & Standards
               </h4>
               <div className="flex flex-wrap gap-2">
                 {cert.skills.map((skill, idx) => (
@@ -158,7 +158,7 @@ export const CertificateModal = () => {
               onClick={() => setActiveModalCert(null)}
               className="px-5 py-2.5 text-xs font-bold text-stone-700 hover:text-stone-950 bg-[#f4ece1] hover:bg-[#ebdccb] rounded-xl transition-all"
             >
-              {lang === 'ar' ? 'إغلاق' : 'Close'}
+              Close
             </button>
 
             {cert.credentialUrl && (
@@ -168,7 +168,7 @@ export const CertificateModal = () => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 rounded-xl transition-all shadow-md shadow-amber-950/20"
               >
-                <span>{lang === 'ar' ? 'التحقق من الاعتماد الرسمي' : 'Verify Credential'}</span>
+                <span>Verify Credential</span>
                 <ExternalLink className="w-4 h-4" />
               </a>
             )}

@@ -26,7 +26,6 @@ import { usePortfolio } from '../context/PortfolioContext';
 export const PortfolioPage = () => {
   const {
     data,
-    lang,
     t,
     setActiveModalCert,
     setActiveModalProject,
@@ -43,7 +42,7 @@ export const PortfolioPage = () => {
   const [projectFilter, setProjectFilter] = useState('weddings');
   const [projectSearch, setProjectSearch] = useState('');
 
-  // Contact / Event Booking form state (used if public form is enabled by admin)
+  // Contact / Event Booking form state
   const [contactForm, setContactForm] = useState({
     name: '',
     phone: '',
@@ -57,12 +56,12 @@ export const PortfolioPage = () => {
 
   // Category filters for media & wedding works
   const projectCategories = [
-    { id: 'weddings', label: lang === 'ar' ? 'أعراس سينمائية' : 'Cinematic Weddings' },
-    { id: 'destination', label: lang === 'ar' ? 'أعراس شاطئية وسفر' : 'Destination Weddings' },
-    { id: 'photography', label: lang === 'ar' ? 'فوتوغرافيا فنية' : 'Bridal Photography' },
-    { id: 'events', label: lang === 'ar' ? 'فعاليات ومؤتمرات' : 'Corporate Events' },
-    { id: 'commercial', label: lang === 'ar' ? 'إعلانات وميديا' : 'Commercial Media' },
-    { id: 'all', label: lang === 'ar' ? 'كافة الأعمال والإنتاجات' : 'All Works' }
+    { id: 'weddings', label: 'Cinematic Weddings' },
+    { id: 'destination', label: 'Destination Weddings' },
+    { id: 'photography', label: 'Bridal Photography' },
+    { id: 'events', label: 'Corporate Events' },
+    { id: 'commercial', label: 'Commercial Media' },
+    { id: 'all', label: 'All Works' }
   ];
 
   // Filter projects
@@ -80,12 +79,7 @@ export const PortfolioPage = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.phone || !contactForm.message) {
-      showToast(
-        lang === 'ar'
-          ? 'يرجى إدخال الاسم ورقم الهاتف وتفاصيل المناسبة.'
-          : 'Please enter your name, phone number, and event details.',
-        'error'
-      );
+      showToast('Please enter your name, phone number, and event details.', 'error');
       return;
     }
     setIsSending(true);
@@ -111,16 +105,12 @@ export const PortfolioPage = () => {
 
     if (emailResult.success && !emailResult.isLocalOnly) {
       showToast(
-        lang === 'ar'
-          ? `ألف مبروك يا ${contactForm.name}! تم استلام طلب الحجز وإرسال إشعار فوري للإيميل.`
-          : `Thank you, ${contactForm.name}! Your booking request was recorded and emailed to ${t(data.profile?.shortName) || 'KMA'} management!`,
+        `Thank you, ${contactForm.name}! Your booking request was recorded and emailed to ${t(data.profile?.shortName) || 'KMA'} management!`,
         'success'
       );
     } else {
       showToast(
-        lang === 'ar'
-          ? `ألف مبروك يا ${contactForm.name}! تم استلام طلب الحجز وتسجيله في لوحة الإدارة.`
-          : `Thank you, ${contactForm.name}! Your booking request was submitted and recorded in the Admin Panel.`,
+        `Thank you, ${contactForm.name}! Your booking request was submitted and recorded in the Admin Panel.`,
         'success'
       );
     }
@@ -172,7 +162,7 @@ export const PortfolioPage = () => {
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [projectFilter, lang]);
+  }, [projectFilter]);
 
   return (
     <div className="relative isolate overflow-hidden bg-[#faf7f2]">
@@ -192,7 +182,7 @@ export const PortfolioPage = () => {
             <div className="order-1 lg:order-2 lg:col-span-5 flex justify-center">
               <div className="relative group w-full max-w-sm sm:max-w-md">
                 <div className="absolute -inset-3 bg-gradient-to-r from-amber-700/20 via-yellow-600/15 to-amber-900/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition duration-500" />
-                <div className="relative rounded-3xl overflow-hidden border border-[#dfd2c0] bg-white shadow-2xl p-6 text-center space-y-5">
+                {/* <div className="relative rounded-3xl overflow-hidden border border-[#dfd2c0] bg-white shadow-2xl p-6 text-center space-y-5">
                   {/* Central KMA Logo */}
                   <div className="w-36 h-36 sm:w-48 sm:h-48 mx-auto rounded-full bg-white p-2.5 shadow-xl ring-4 ring-[#dfd2c0]/70 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500">
                     <img
@@ -203,11 +193,11 @@ export const PortfolioPage = () => {
                     />
                   </div>
 
-                  <div className="space-y-1.5 border-t border-[#f0e6d6] pt-3">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-300">
+                  {/* <div className="space-y-1.5 border-t border-[#f0e6d6] pt-3">
+                    {/* <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-300">
                       <Camera className="w-3.5 h-3.5" />
-                      <span>{lang === 'ar' ? 'فريق تصوير سينمائي ومعدات 4K/6K' : 'Cinema Crew & 4K/6K Gear'}</span>
-                    </div>
+                      <span>Cinema Crew & 4K/6K Gear</span>
+                    </div> }
                     <h3 className="text-base font-bold text-stone-900 judicial-heading">
                       {t(data.profile?.fullName)}
                     </h3>
@@ -215,26 +205,22 @@ export const PortfolioPage = () => {
                       <MapPin className="w-3.5 h-3.5 text-amber-800 shrink-0" />
                       <span>{t(data.profile?.location)}</span>
                     </p>
-                  </div>
-                </div>
+                  </div> 
+                </div> */}
               </div>
             </div>
 
             {/* Headline & Action Column: Renders SECOND on mobile (order-2), left column on desktop (lg:order-1) */}
-            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6 text-center lg:text-left rtl:lg:text-right">
+            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Trust Badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f4ece1] border border-[#dfd2c0] text-amber-950 text-xs font-bold shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-                <span>
-                  {lang === 'ar'
-                    ? `${t(data.profile?.fullName) || 'KMA Wedding & Media Production'} • رواد التصوير السينمائي`
-                    : `${t(data.profile?.fullName) || 'KMA Wedding & Media Production'} • Premier Cinematography`}
-                </span>
+                <span>{`${t(data.profile?.fullName) || 'KMA Wedding & Media Production'} • Premier Cinematography`}</span>
               </div>
 
               {/* Title & Headline */}
               <div className="space-y-3">
-                <div className="flex items-baseline justify-center lg:justify-start rtl:lg:justify-start gap-2.5">
+                <div className="flex items-baseline justify-center lg:justify-start gap-2.5">
                   <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-stone-900 judicial-heading">
                     <span className="gradient-gold">{t(data.profile?.shortName) || 'KMA'}</span>
                   </h1>
@@ -251,7 +237,7 @@ export const PortfolioPage = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start rtl:lg:justify-start gap-3 pt-1">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
                 <button
                   onClick={() => {
                     const target = document.querySelector('#contact');
@@ -264,7 +250,7 @@ export const PortfolioPage = () => {
                   className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-md transition-all"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>{lang === 'ar' ? 'احجز موعد حفل زفافك الآن' : 'Book Your Event Now'}</span>
+                  <span>Book Your Event Now</span>
                 </button>
 
                 <button
@@ -279,7 +265,7 @@ export const PortfolioPage = () => {
                   className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-xs sm:text-sm text-stone-800 bg-white hover:bg-[#f6eee4] border border-[#ded0bf] shadow-sm transition-all"
                 >
                   <Film className="w-4 h-4 text-amber-800" />
-                  <span>{lang === 'ar' ? 'معرض الأعمال السينمائية' : 'Explore Portfolio'}</span>
+                  <span>Explore Portfolio</span>
                 </button>
               </div>
             </div>
@@ -296,12 +282,10 @@ export const PortfolioPage = () => {
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
             <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
               <Heart className="w-4 h-4 text-amber-800 fill-amber-800" />
-              <span>{lang === 'ar' ? 'الرؤية والرسالة الفنية' : 'Our Vision & Philosophy'}</span>
+              <span>Our Vision & Philosophy</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
-              {lang === 'ar'
-                ? `فلسفة ${t(data.profile?.shortName) || 'KMA'} في توثيق أروع لحظات العمر`
-                : `Crafting Visual Legacies with ${t(data.profile?.shortName) || 'KMA'}`}
+              {`Crafting Visual Legacies with ${t(data.profile?.shortName) || 'KMA'}`}
             </h3>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
               {t(data.profile?.bio)}
@@ -316,16 +300,13 @@ export const PortfolioPage = () => {
                 <Sparkles className="w-6 h-6 text-amber-800" />
               </div>
               <h4 className="text-lg font-bold text-stone-900 judicial-heading">
-                {lang === 'ar' ? 'رؤيتنا الفنية (Our Vision)' : 'Our Artistic Vision'}
+                Our Artistic Vision
               </h4>
               <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
-                {t(data.profile?.vision) ||
-                  (lang === 'ar'
-                    ? 'أن نخلد أثمن لحظات زفافكم في تحف سينمائية باهرة تنبض بالمشاعر وتبقى ملهمة للأجيال القادمة.'
-                    : 'To immortalize your once-in-a-lifetime celebrations into timeless cinema films that evoke deep emotions for generations.')}
+                {t(data.profile?.vision) || 'To immortalize your once-in-a-lifetime celebrations into timeless cinema films that evoke deep emotions for generations.'}
               </p>
               <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-900 font-bold uppercase tracking-wider">
-                <span>✦ {lang === 'ar' ? 'رواية بصرية خالدة' : 'Timeless Visual Storytelling'}</span>
+                <span>✦ Timeless Visual Storytelling</span>
               </div>
             </div>
 
@@ -335,16 +316,13 @@ export const PortfolioPage = () => {
                 <Camera className="w-6 h-6 text-amber-800" />
               </div>
               <h4 className="text-lg font-bold text-stone-900 judicial-heading">
-                {lang === 'ar' ? 'رسالتنا السينمائية (Our Mission)' : 'Our Filmmaking Mission'}
+                Our Filmmaking Mission
               </h4>
               <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
-                {t(data.profile?.mission) ||
-                  (lang === 'ar'
-                    ? 'دمج أحدث تقنيات كاميرات السينما والعدسات البصرية مع التوثيق الإخراجي العفوي لتقديم أعلى معايير الجودة والإبهار البصري.'
-                    : 'Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence.')}
+                {t(data.profile?.mission) || 'Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence.'}
               </p>
               <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-900 font-bold uppercase tracking-wider">
-                <span>✦ {lang === 'ar' ? 'دقة سينمائية 4K/6K' : '4K/6K Cinema Standard'}</span>
+                <span>✦ 4K/6K Cinema Standard</span>
               </div>
             </div>
           </div>
@@ -358,10 +336,10 @@ export const PortfolioPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-xl mx-auto mb-10 space-y-1.5">
             <h3 className="text-xl sm:text-2xl font-bold text-stone-900 judicial-heading">
-              {lang === 'ar' ? 'أرقام تعكس التميز والجودة' : 'Highlights in Numbers'}
+              Highlights in Numbers
             </h3>
             <p className="text-xs text-stone-500 font-medium">
-              {lang === 'ar' ? 'مسيرة موثقة بالنجاح ورضا عملائنا الكرام' : 'A documented track record of client trust and excellence'}
+              A documented track record of client trust and excellence
             </p>
           </div>
 
@@ -399,26 +377,24 @@ export const PortfolioPage = () => {
             <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
                 <Clock className="w-4 h-4 text-amber-800" />
-                <span>{lang === 'ar' ? `رحلة ${t(data.profile?.shortName) || 'KMA'} الإبداعية` : `The ${t(data.profile?.shortName) || 'KMA'} Creative Legacy`}</span>
+                <span>{`The ${t(data.profile?.shortName) || 'KMA'} Creative Legacy`}</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 judicial-heading">
-                {lang === 'ar' ? 'سنوات من الريادة في عالم التصوير السينمائي' : 'Our Creative Journey & Heritage'}
+                Our Creative Journey & Heritage
               </h3>
             </div>
 
-            <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left rtl:sm:text-right">
+            <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
               <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-800 to-yellow-900 text-white font-bold font-mono text-sm shrink-0 shadow-sm">
                 {(data.milestones && data.milestones[0]?.year) || "2018 - Present"}
               </div>
               <div className="space-y-1.5">
                 <h4 className="text-base sm:text-lg font-bold text-stone-900 judicial-heading">
-                  {(data.milestones && t(data.milestones[0]?.title)) || (lang === 'ar' ? 'تاريخ حافل بتوثيق أروع الأعراس الملكية' : `The ${t(data.profile?.shortName) || 'KMA'} Filmmaking Heritage`)}
+                  {(data.milestones && t(data.milestones[0]?.title)) || `The ${t(data.profile?.shortName) || 'KMA'} Filmmaking Heritage`}
                 </h4>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
                   {(data.milestones && t(data.milestones[0]?.description)) ||
-                    (lang === 'ar'
-                      ? 'أكثر من 6 سنوات من توثيق أبهى الأفراح والفعاليات الكبرى، ووضع بصمة بصرية فريدة تجمع بين الرقي والابتكار عبر أروع فنادق وقاعات مصر.'
-                      : 'Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across Egypt\'s most prestigious venues.')}
+                    'Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across prestigious venues.'}
                 </p>
               </div>
             </div>
@@ -429,10 +405,10 @@ export const PortfolioPage = () => {
             <div className="text-center max-w-xl mx-auto mb-8 space-y-1.5">
               <h4 className="text-lg sm:text-xl font-bold text-stone-900 judicial-heading flex items-center justify-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-700" />
-                <span>{lang === 'ar' ? 'أبرز القاعات والفنادق التي وثقنا فيها أسعد اللحظات' : 'Prestigious Venues We Have Filmed At'}</span>
+                <span>Prestigious Venues We Have Filmed At</span>
               </h4>
               <p className="text-xs text-stone-500 font-medium">
-                {lang === 'ar' ? 'تغطية سينمائية شاملة في أرقى فنادق ومنتجعات مصر والشرق الأوسط' : 'Experienced across top-tier luxury ballrooms, open-air venues, and coastal resorts'}
+                Experienced across top-tier luxury ballrooms, open-air venues, and coastal resorts
               </p>
             </div>
 
@@ -481,23 +457,19 @@ export const PortfolioPage = () => {
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900 mb-1.5">
                 <Film className="w-4 h-4 text-amber-800" />
-                <span>{lang === 'ar' ? 'معرض الأفلام والإنتاجات' : 'Cinematography & Films'}</span>
+                <span>Cinematography & Films</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
-                {lang === 'ar'
-                  ? `أحدث أعمال وأفلام ${t(data.profile?.shortName) || 'KMA'} السينمائية`
-                  : `${t(data.profile?.shortName) || 'KMA'} Featured Films & Highlights`}
+                {`${t(data.profile?.shortName) || 'KMA'} Featured Films & Highlights`}
               </h3>
               <p className="text-stone-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                {lang === 'ar'
-                  ? 'شاهد لقطات حية من أروع الأفراح والفعاليات. اضغط على أي عمل لتشغيل الفيديو فوراً بجودة سينمائية.'
-                  : 'Watch live highlights from our premier weddings. Click on any work to play the video instantly.'}
+                Watch live highlights from our premier weddings. Click on any work to play the video instantly.
               </p>
             </div>
 
             <div className="text-xs font-bold text-amber-950 bg-amber-100/90 px-3.5 py-1.5 rounded-xl border border-amber-300 shrink-0 self-start md:self-end">
               <span>
-                {filteredProjects.length} {lang === 'ar' ? 'أعمال معروضة' : 'Films Shown'}
+                {filteredProjects.length} Films Shown
               </span>
             </div>
           </div>
@@ -506,17 +478,13 @@ export const PortfolioPage = () => {
           <div className="flex flex-col md:flex-row gap-3 mb-8">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={projectSearch}
                 onChange={(e) => setProjectSearch(e.target.value)}
-                placeholder={
-                  lang === 'ar'
-                    ? 'ابحث في الأعمال بالاسم أو المكان أو نوع التصوير...'
-                    : 'Search films by title, venue, or style...'
-                }
-                className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 rounded-xl bg-white border border-[#ded0bf] text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 shadow-sm"
+                placeholder="Search films by title, venue, or style..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#ded0bf] text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 shadow-sm"
               />
             </div>
 
@@ -538,14 +506,12 @@ export const PortfolioPage = () => {
             </div>
           </div>
 
-          {/* Compact Project Cards ("ايتميز صغيرة") with Instant Video & Photo */}
+          {/* Compact Project Cards with Instant Video & Photo */}
           {filteredProjects.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-white border border-[#ded0bf] shadow-sm">
               <Film className="w-10 h-10 text-stone-300 mx-auto mb-2" />
               <p className="text-stone-600 font-medium text-xs sm:text-sm">
-                {lang === 'ar'
-                  ? 'لم يتم العثور على أعمال مطابقة لبحثك الحالي.'
-                  : 'No projects found matching your search.'}
+                No projects found matching your search.
               </p>
               <button
                 onClick={() => {
@@ -554,7 +520,7 @@ export const PortfolioPage = () => {
                 }}
                 className="mt-2 text-xs text-amber-800 font-bold hover:underline"
               >
-                {lang === 'ar' ? 'عرض الأعراس السينمائية' : 'Reset to Weddings'}
+                Reset to Weddings
               </button>
             </div>
           ) : (
@@ -584,14 +550,14 @@ export const PortfolioPage = () => {
                     </div>
 
                     {/* Top Left: Category Pill */}
-                    <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5">
+                    <div className="absolute top-2.5 left-2.5">
                       <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-white/95 backdrop-blur-md text-amber-950 border border-amber-300 shadow-sm">
                         {t(proj.categoryLabel)}
                       </span>
                     </div>
 
                     {/* Top Right: Video / 4K Pill */}
-                    <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5">
+                    <div className="absolute top-2.5 right-2.5">
                       <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-stone-950/85 text-amber-300 border border-amber-500/30 font-mono shadow-sm flex items-center gap-1">
                         <Video className="w-3 h-3 text-amber-400" />
                         <span>4K Film</span>
@@ -601,7 +567,7 @@ export const PortfolioPage = () => {
                     {/* Bottom overlay: Year & Venue */}
                     <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[11px] text-white/90 font-mono drop-shadow">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-amber-400" />
+                        <Clock className="w-3.5 h-3.5 text-amber-400" />
                         <span>{proj.year}</span>
                       </span>
                       <span className="truncate max-w-[170px] text-stone-300">
@@ -626,9 +592,9 @@ export const PortfolioPage = () => {
                     <div className="flex items-center justify-between pt-2 border-t border-[#eee5d8] text-[11px] font-bold text-amber-900">
                       <span className="flex items-center gap-1">
                         <Play className="w-3 h-3 fill-amber-800 text-amber-800" />
-                        <span>{lang === 'ar' ? 'تشغيل الفيلم السينمائي' : 'Play Cinema Film'}</span>
+                        <span>Play Cinema Film</span>
                       </span>
-                      <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform text-amber-800" />
+                      <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform text-amber-800" />
                     </div>
                   </div>
                 </div>
@@ -648,15 +614,13 @@ export const PortfolioPage = () => {
             <div className="reveal lg:col-span-5 space-y-6">
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
                 <Heart className="w-4 h-4 text-amber-800 fill-amber-800" />
-                <span>{lang === 'ar' ? `تواصل مع فريق ${t(data.profile?.shortName) || 'KMA'}` : `Connect with ${t(data.profile?.shortName) || 'KMA'}`}</span>
+                <span>{`Connect with ${t(data.profile?.shortName) || 'KMA'}`}</span>
               </div>
               <h3 className="text-2xl sm:text-4xl font-bold text-stone-900 tracking-tight judicial-heading">
-                {lang === 'ar' ? `احجز موعد حفل زفافك مع ${t(data.profile?.shortName) || 'KMA'} الآن` : `Reserve Your Date with ${t(data.profile?.shortName) || 'KMA'}`}
+                {`Reserve Your Date with ${t(data.profile?.shortName) || 'KMA'}`}
               </h3>
               <p className="text-stone-600 text-xs sm:text-base leading-relaxed">
-                {lang === 'ar'
-                  ? 'نسعد بمشاركتكم أسعد لحظاتكم. يرجى ملء بيانات الحفل لمعرفة توافر الموعد ومناقشة تفاصيل الباقة السينمائية المناسبة لكم.'
-                  : 'We are thrilled to capture your once-in-a-lifetime moments. Fill in your event details to check availability.'}
+                We are thrilled to capture your once-in-a-lifetime moments. Fill in your event details to check availability.
               </p>
 
               <div className="space-y-3.5 pt-2">
@@ -669,7 +633,7 @@ export const PortfolioPage = () => {
                   </div>
                   <div>
                     <div className="text-[11px] text-stone-500 uppercase font-bold">
-                      {lang === 'ar' ? 'البريد الإلكتروني المباشر' : 'Official Email'}
+                      Official Email
                     </div>
                     <div className="text-sm font-bold text-stone-900 font-mono">{data.profile.email}</div>
                   </div>
@@ -681,7 +645,7 @@ export const PortfolioPage = () => {
                   </div>
                   <div>
                     <div className="text-[11px] text-stone-500 uppercase font-bold">
-                      {lang === 'ar' ? 'الاستوديو ومقر العمل' : 'Studio & Production Base'}
+                      Studio & Production Base
                     </div>
                     <div className="text-sm font-bold text-stone-900">{t(data.profile.location)}</div>
                   </div>
@@ -697,7 +661,7 @@ export const PortfolioPage = () => {
                     </div>
                     <div>
                       <div className="text-[11px] text-stone-500 uppercase font-bold">
-                        {lang === 'ar' ? 'الهاتف / واتساب للحجوزات' : 'Phone / WhatsApp'}
+                        Phone / WhatsApp
                       </div>
                       <div className="text-sm font-bold text-stone-900 font-mono">{data.profile.phone}</div>
                     </div>
@@ -706,7 +670,7 @@ export const PortfolioPage = () => {
               </div>
             </div>
 
-            {/* Interactive Wedding Booking Form (Permanently restored for all visitors) */}
+            {/* Interactive Wedding Booking Form */}
             <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
               <div className="p-8 sm:p-10 rounded-3xl bg-white border border-[#ded0bf] shadow-xl space-y-6">
                 {/* Fast WhatsApp Bar */}
@@ -718,25 +682,23 @@ export const PortfolioPage = () => {
                       </div>
                       <div>
                         <div className="text-xs font-bold text-stone-900">
-                          {lang === 'ar' ? 'تفضل التواصل المباشر والسريع؟' : 'Prefer instant direct concierge?'}
+                          Prefer instant direct concierge?
                         </div>
                         <div className="text-[11px] text-stone-500">
-                          {lang === 'ar' ? 'فريق الحجوزات متواجد للرد على استفساراتكم فوراً' : 'Available 24/7 for date checks & packages'}
+                          Available 24/7 for date checks & packages
                         </div>
                       </div>
                     </div>
                     <a
                       href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                        lang === 'ar'
-                          ? `مرحباً فريق ${t(data.profile?.fullName) || 'KMA Wedding'}، أود الاستفسار عن حجز وتغطية موعد مناسبة قادمة.`
-                          : `Hello ${t(data.profile?.fullName) || 'KMA Wedding'}, I would like to inquire about booking your cinematic team for an upcoming event.`
+                        `Hello ${t(data.profile?.fullName) || 'KMA Wedding'}, I would like to inquire about booking your cinematic team for an upcoming event.`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs shadow-sm transition-all text-center shrink-0 flex items-center justify-center gap-1.5"
                     >
                       <Phone className="w-3.5 h-3.5 fill-current" />
-                      <span>{lang === 'ar' ? 'محادثة واتساب فورية' : 'Chat via WhatsApp'}</span>
+                      <span>Chat via WhatsApp</span>
                     </a>
                   </div>
                 )}
@@ -744,171 +706,149 @@ export const PortfolioPage = () => {
                 <div className="flex items-center justify-between pb-4 border-b border-[#f0e6d6]">
                   <div>
                     <h4 className="text-xl font-bold text-stone-900 judicial-heading">
-                      {lang === 'ar' ? 'استمارة حجز موعد ومناسبة' : 'Event Booking Form'}
+                      Event Booking Form
                     </h4>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      {lang === 'ar'
-                        ? 'احجز موعدك مبكراً لضمان توافر فريق التصوير في يومك المميز'
-                        : 'Book in advance to secure our cinematography crew for your date'}
+                      Book in advance to secure our cinematography crew for your date
                     </p>
                   </div>
                   <Sparkles className="w-5 h-5 text-amber-700 shrink-0" />
                 </div>
 
                 <form onSubmit={handleSendMessage} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                          {lang === 'ar' ? 'الاسم بالكامل' : 'Your Name'} *
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={contactForm.name}
-                          onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                          placeholder={lang === 'ar' ? 'الاسم الكريم' : 'Full Name'}
-                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                          {lang === 'ar' ? 'رقم الهاتف / واتساب' : 'Phone / WhatsApp'} *
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          value={contactForm.phone}
-                          onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                          placeholder="+20 ..."
-                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                          {lang === 'ar' ? 'تاريخ الحفل / المناسبة' : 'Event Date'}
-                        </label>
-                        <input
-                          type="date"
-                          value={contactForm.eventDate}
-                          onChange={(e) => setContactForm({ ...contactForm, eventDate: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                          {lang === 'ar' ? 'مكان الحفل / القاعة' : 'Venue / City'}
-                        </label>
-                        <input
-                          type="text"
-                          value={contactForm.location}
-                          onChange={(e) => setContactForm({ ...contactForm, location: e.target.value })}
-                          placeholder={lang === 'ar' ? 'اسم القاعة أو المدينة' : 'Venue Name / City'}
-                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                        />
-                      </div>
-                    </div>
-
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                        {lang === 'ar' ? 'نوع المناسبة المطلوبة' : 'Event Type'}
+                        Your Name *
                       </label>
-                      <select
-                        value={contactForm.eventType}
-                        onChange={(e) => setContactForm({ ...contactForm, eventType: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm font-medium"
-                      >
-                        <option value="wedding">
-                          {lang === 'ar' ? 'حفل زفاف سينمائي كامل (Full Wedding Film)' : 'Cinematic Wedding'}
-                        </option>
-                        <option value="destination">
-                          {lang === 'ar' ? 'زفاف شاطئي / سفر خارجي (Destination Wedding)' : 'Destination Beach Wedding'}
-                        </option>
-                        <option value="engagement">
-                          {lang === 'ar' ? 'حفل خطوبة وفوتوسيشن (Engagement & Photoshoot)' : 'Engagement & Photoshoot'}
-                        </option>
-                        <option value="event">
-                          {lang === 'ar' ? 'تغطية مؤتمر أو فعالية كبرى (Corporate Event)' : 'Corporate Event'}
-                        </option>
-                        <option value="commercial">
-                          {lang === 'ar' ? 'إنتاج إعلان تجاري أو فيديو ترويجي (Commercial)' : 'Commercial Video'}
-                        </option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                        {lang === 'ar' ? 'تفاصيل إضافية أو طلبات خاصة' : 'Additional Notes / Vision'} *
-                      </label>
-                      <textarea
-                        rows={4}
+                      <input
+                        type="text"
                         required
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                        placeholder={
-                          lang === 'ar'
-                            ? 'أخبرنا عن رؤيتكم لليوم المميز، عدد الحضور، أو أي تفاصيل تحبون أن نركز عليها...'
-                            : 'Tell us about your vision for the special day...'
-                        }
-                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm resize-none"
+                        value={contactForm.name}
+                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                        placeholder="Full Name"
+                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
                       />
                     </div>
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                        Phone / WhatsApp *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={contactForm.phone}
+                        onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                        placeholder="+20 ..."
+                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
 
-                    <button
-                      type="submit"
-                      disabled={isSending}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-md transition-all disabled:opacity-50"
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                        Event Date
+                      </label>
+                      <input
+                        type="date"
+                        value={contactForm.eventDate}
+                        onChange={(e) => setContactForm({ ...contactForm, eventDate: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                        Venue / City
+                      </label>
+                      <input
+                        type="text"
+                        value={contactForm.location}
+                        onChange={(e) => setContactForm({ ...contactForm, location: e.target.value })}
+                        placeholder="Venue Name / City"
+                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                      Event Type
+                    </label>
+                    <select
+                      value={contactForm.eventType}
+                      onChange={(e) => setContactForm({ ...contactForm, eventType: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm font-medium"
                     >
-                      {isSending ? (
-                        <span>{lang === 'ar' ? 'جاري إرسال الطلب...' : 'Sending Request...'}</span>
-                      ) : (
-                        <>
-                          <span>{lang === 'ar' ? 'إرسال طلب الحجز الآن' : 'Submit Booking Request'}</span>
-                          <Send className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
+                      <option value="wedding">Cinematic Wedding</option>
+                      <option value="destination">Destination Beach Wedding</option>
+                      <option value="engagement">Engagement & Photoshoot</option>
+                      <option value="event">Corporate Event</option>
+                      <option value="commercial">Commercial Video</option>
+                    </select>
+                  </div>
 
-                    {lastBookingSubmitted && (
-                      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2.5 animate-fade-in">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-                          <span className="text-xs font-bold">
-                            {lang === 'ar'
-                              ? `شكراً لك ${lastBookingSubmitted.name}! تم استلام وتسجيل طلبك بنجاح.`
-                              : `Thank you, ${lastBookingSubmitted.name}! Your request has been recorded.`}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-emerald-800 leading-relaxed">
-                          {lang === 'ar'
-                            ? `يمكنك أيضاً إرسال نسخة فورية ومباشرة من تفاصيل حجزك عبر الواتساب لتأكيد موعدك أسرع مع فريق ${t(data.profile?.shortName) || 'KMA'}.`
-                            : `You can also send a direct instant copy via WhatsApp to confirm availability immediately with ${t(data.profile?.shortName) || 'KMA'}.`}
-                        </p>
-                        {data.profile?.phone && (
-                          <a
-                            href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                              lang === 'ar'
-                                ? `مرحباً فريق ${t(data.profile?.shortName) || 'KMA'}! قمت للتو بتقديم طلب حجز مناسبة (${lastBookingSubmitted.eventType || 'حفل زفاف'}) لتاريخ ${lastBookingSubmitted.eventDate || 'قريباً'} في ${lastBookingSubmitted.location || 'القاهرة'}. الاسم: ${lastBookingSubmitted.name}.`
-                                : `Hello ${t(data.profile?.shortName) || 'KMA'} Team! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>{lang === 'ar' ? 'تأكيد الحجز فوراً عبر واتساب' : 'Confirm Instantly via WhatsApp'}</span>
-                          </a>
-                        )}
-                      </div>
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                      Additional Notes / Vision *
+                    </label>
+                    <textarea
+                      rows={4}
+                      required
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                      placeholder="Tell us about your vision for the special day..."
+                      className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSending}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-md transition-all disabled:opacity-50"
+                  >
+                    {isSending ? (
+                      <span>Sending Request...</span>
+                    ) : (
+                      <>
+                        <span>Submit Booking Request</span>
+                        <Send className="w-4 h-4" />
+                      </>
                     )}
-                  </form>
-                </div>
+                  </button>
+
+                  {lastBookingSubmitted && (
+                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2.5 animate-fade-in">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <span className="text-xs font-bold">
+                          {`Thank you, ${lastBookingSubmitted.name}! Your request has been recorded.`}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-emerald-800 leading-relaxed">
+                        {`You can also send a direct instant copy via WhatsApp to confirm availability immediately with ${t(data.profile?.shortName) || 'KMA'}.`}
+                      </p>
+                      {data.profile?.phone && (
+                        <a
+                          href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                            `Hello ${t(data.profile?.shortName) || 'KMA'} Team! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Confirm Instantly via WhatsApp</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </form>
               </div>
             </div>
           </div>
-        </section>
-      </div>
-    );
-  };
+        </div>
+      </section>
+    </div>
+  );
+};

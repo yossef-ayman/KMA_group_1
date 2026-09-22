@@ -31,18 +31,8 @@ export const PortfolioProvider = ({ children }) => {
     } catch (e) {}
   }
 
-  // Language state: defaults to Arabic ('ar')
-  const [lang, setLang] = useState(() => {
-    try {
-      const savedLang = localStorage.getItem(STORAGE_LANG_KEY);
-      if (savedLang === 'en' || savedLang === 'ar') {
-        return savedLang;
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return 'ar'; // Default to Arabic for all visitors
-  });
+  // Language state: English only (per user request to remove Arabic entirely)
+  const [lang, setLang] = useState('en');
 
   // Admin Security & Passcode Gate
   const [adminPasscode, setAdminPasscode] = useState(() => {
@@ -79,7 +69,7 @@ export const PortfolioProvider = ({ children }) => {
           try {
             sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
           } catch (e) {}
-          showToast(lang === 'ar' ? 'تم تسجيل الدخول للوحة الإدارة بنجاح' : 'Admin session authenticated successfully!');
+          showToast('Admin session authenticated successfully!');
           return true;
         }
       }
@@ -93,10 +83,10 @@ export const PortfolioProvider = ({ children }) => {
       try {
         sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
       } catch (e) {}
-      showToast(lang === 'ar' ? 'تم تسجيل الدخول للوحة الإدارة بنجاح' : 'Admin session authenticated successfully!');
+      showToast('Admin session authenticated successfully!');
       return true;
     }
-    showToast(lang === 'ar' ? 'الرقم السري غير صحيح' : 'Invalid admin passcode.', 'error');
+    showToast('Invalid admin passcode.', 'error');
     return false;
   };
 
@@ -105,12 +95,12 @@ export const PortfolioProvider = ({ children }) => {
     try {
       sessionStorage.removeItem(SESSION_AUTH_KEY);
     } catch (e) {}
-    showToast(lang === 'ar' ? 'تم تسجيل الخروج' : 'Admin session ended.', 'info');
+    showToast('Admin session ended.', 'info');
   };
 
   const updateAdminPasscode = async (newCode) => {
     if (!newCode || newCode.length < 4) {
-      showToast(lang === 'ar' ? 'الرمز يجب أن يكون 4 خانات على الأقل' : 'Passcode must be at least 4 characters.', 'error');
+      showToast('Passcode must be at least 4 characters.', 'error');
       return false;
     }
     const prevCode = adminPasscode;
@@ -123,7 +113,7 @@ export const PortfolioProvider = ({ children }) => {
         body: JSON.stringify({ currentPasscode: prevCode, newPasscode: newCode })
       });
     } catch (e) {}
-    showToast(lang === 'ar' ? 'تم تحديث الرقم السري بنجاح' : 'Admin passcode updated successfully!');
+    showToast('Admin passcode updated successfully!');
     return true;
   };
 
@@ -153,11 +143,7 @@ export const PortfolioProvider = ({ children }) => {
   const setTheme = (themeId) => {
     setCurrentTheme(themeId);
     const themeObj = THEME_PRESETS.find(t => t.id === themeId);
-    showToast(
-      lang === 'ar'
-        ? `تم تفعيل ثيم: ${themeObj?.name || themeId}`
-        : `Theme switched to: ${themeObj?.name || themeId}`
-    );
+    showToast(`Theme switched to: ${themeObj?.name || themeId}`);
   };
 
   // Background Canvas Tone state: defaults to 'beige'
@@ -186,11 +172,7 @@ export const PortfolioProvider = ({ children }) => {
   const setBackgroundTone = (toneId) => {
     setBgTone(toneId);
     const toneObj = BG_TONES.find(b => b.id === toneId);
-    showToast(
-      lang === 'ar'
-        ? `تم تفعيل لون الخلفية: ${toneObj?.name || toneId}`
-        : `Background updated to: ${toneObj?.name || toneId}`
-    );
+    showToast(`Background updated to: ${toneObj?.name || toneId}`);
   };
 
   const [data, setData] = useState(() => {
@@ -340,17 +322,12 @@ export const PortfolioProvider = ({ children }) => {
     const destinationEmail = data.profile?.notificationEmail?.trim() || data.profile?.email || 'contact@kmawedding.com';
 
     if (!accessKey) {
-      showToast(
-        lang === 'ar'
-          ? 'يرجى كتابة Web3Forms Access Key أولاً لإرسال إيميل حقيقي.'
-          : 'Please enter your Web3Forms Access Key first to send live test emails.',
-        'error'
-      );
+      showToast('Please enter your Web3Forms Access Key first to send live test emails.', 'error');
       return false;
     }
 
     try {
-      showToast(lang === 'ar' ? 'جارٍ إرسال رسالة تجريبية للإيميل...' : 'Sending test email...', 'info');
+      showToast('Sending test email...', 'info');
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: {
@@ -368,12 +345,7 @@ export const PortfolioProvider = ({ children }) => {
       });
       const result = await response.json();
       if (result.success) {
-        showToast(
-          lang === 'ar'
-            ? `وصلت الرسالة التجريبية بنجاح إلى ${destinationEmail}!`
-            : `Test email sent successfully to ${destinationEmail}!`,
-          'success'
-        );
+        showToast(`Test email sent successfully to ${destinationEmail}!`, 'success');
         return true;
       } else {
         showToast(result.message || 'Failed to send test email', 'error');
@@ -406,43 +378,33 @@ export const PortfolioProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
 
-  // Keep HTML lang & dir attribute in sync
+  // Keep HTML lang & dir attribute in sync (English only, LTR)
   useEffect(() => {
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = 'en';
+    document.documentElement.dir = 'ltr';
     try {
-      localStorage.setItem(STORAGE_LANG_KEY, lang);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [lang]);
+      localStorage.setItem(STORAGE_LANG_KEY, 'en');
+    } catch (e) {}
+  }, []);
 
-  const toggleLanguage = () => {
-    setLang((prev) => (prev === 'ar' ? 'en' : 'ar'));
-  };
+  const toggleLanguage = () => {};
+  const setLanguage = () => {};
 
-  const setLanguage = (newLang) => {
-    if (newLang === 'ar' || newLang === 'en') {
-      setLang(newLang);
-    }
-  };
-
-  // Helper function to extract translated text
+  // Helper function to extract text
   const t = (val) => {
     if (!val) return '';
     if (typeof val === 'string') return val;
     if (typeof val === 'object') {
-      return val[lang] || val.ar || val.en || '';
+      return val.en || val.ar || '';
     }
     return String(val);
   };
 
-  // Keep document.title synchronized with studio brand name and language
+  // Keep document.title synchronized with studio brand name
   useEffect(() => {
     const siteName = t(data?.profile?.fullName) || t(data?.profile?.shortName) || 'KMA Wedding';
-    const siteTagline = lang === 'ar' ? 'إنتاج سينمائي وتوثيق أفراح ملكية' : 'Premier Cinematography & Luxury Wedding Media';
-    document.title = `${siteName} • ${siteTagline}`;
-  }, [data?.profile?.fullName, data?.profile?.shortName, lang]);
+    document.title = `${siteName} • Premier Cinematography`;
+  }, [data?.profile?.fullName, data?.profile?.shortName]);
 
   // Synchronize hash with view
   useEffect(() => {
@@ -485,7 +447,7 @@ export const PortfolioProvider = ({ children }) => {
         if (!healthRes.ok) throw new Error('API offline');
         if (isMounted) setBackendStatus('connected');
 
-        // Load data from backend
+        // Load data from backend (Read-only for visitors)
         const dataRes = await fetch('/api/data');
         if (dataRes.ok) {
           const resJson = await dataRes.json();
@@ -496,13 +458,6 @@ export const PortfolioProvider = ({ children }) => {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(resJson.data));
               } catch (e) {}
             }
-          } else {
-            // First run on fresh backend: seed with current frontend data
-            await fetch('/api/data', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(data)
-            });
           }
         }
 
@@ -531,7 +486,7 @@ export const PortfolioProvider = ({ children }) => {
     };
   }, []);
 
-  // Save to localStorage & debounced sync to backend API whenever data changes
+  // Save to localStorage & sync to backend API ONLY when authenticated as admin
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -539,20 +494,22 @@ export const PortfolioProvider = ({ children }) => {
       console.error('Failed to save to localStorage', e);
     }
 
-    const syncTimer = setTimeout(async () => {
-      try {
-        await fetch('/api/data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-      } catch (e) {
-        // Silently keep local fallback
-      }
-    }, 1200);
+    if (isAdminAuthenticated) {
+      const syncTimer = setTimeout(async () => {
+        try {
+          await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+        } catch (e) {
+          // Keep local fallback
+        }
+      }, 1000);
 
-    return () => clearTimeout(syncTimer);
-  }, [data]);
+      return () => clearTimeout(syncTimer);
+    }
+  }, [data, isAdminAuthenticated]);
 
   // Profile methods
   const updateProfile = (profileUpdates) => {
@@ -563,7 +520,7 @@ export const PortfolioProvider = ({ children }) => {
         ...profileUpdates
       }
     }));
-    showToast(lang === 'ar' ? 'تم تحديث بيانات الشركة بنجاح!' : 'Studio & Brand profile updated successfully!');
+    showToast('Studio & Brand profile updated successfully!');
   };
 
   const updateStats = (newStats) => {
@@ -574,7 +531,7 @@ export const PortfolioProvider = ({ children }) => {
         stats: newStats
       }
     }));
-    showToast(lang === 'ar' ? 'تم تحديث الإحصائيات بنجاح' : 'Key statistics updated successfully');
+    showToast('Key statistics updated successfully');
   };
 
   // Certificate / Permit methods
@@ -587,7 +544,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       certificates: [certWithId, ...prev.certificates]
     }));
-    showToast(lang === 'ar' ? 'تمت إضافة الاعتماد الرسمي بنجاح' : 'Official permit / accreditation added successfully');
+    showToast('Official permit / accreditation added successfully');
     return certWithId;
   };
 
@@ -598,7 +555,7 @@ export const PortfolioProvider = ({ children }) => {
         cert.id === id ? { ...cert, ...updatedFields } : cert
       )
     }));
-    showToast(lang === 'ar' ? 'تم حفظ الاعتماد بنجاح' : 'Accreditation saved successfully');
+    showToast('Accreditation saved successfully');
   };
 
   const deleteCertificate = (id) => {
@@ -609,7 +566,7 @@ export const PortfolioProvider = ({ children }) => {
     if (editingCertId === id) {
       setEditingCertId(null);
     }
-    showToast(lang === 'ar' ? 'تم حذف الاعتماد' : 'Accreditation removed', 'info');
+    showToast('Accreditation removed', 'info');
   };
 
   const refreshCertificates = () => {
@@ -617,7 +574,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       certificates: [...prev.certificates]
     }));
-    showToast(lang === 'ar' ? 'تم تحديث قائمة الاعتمادات' : 'Accreditations refreshed successfully');
+    showToast('Accreditations refreshed successfully');
   };
 
   // Project methods
@@ -630,7 +587,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       projects: [projectWithId, ...prev.projects]
     }));
-    showToast(lang === 'ar' ? 'تمت إضافة العمل/الفيلم بنجاح' : 'Film / Project added successfully');
+    showToast('Film / Project added successfully');
     return projectWithId;
   };
 
@@ -641,7 +598,7 @@ export const PortfolioProvider = ({ children }) => {
         proj.id === id ? { ...proj, ...updatedFields } : proj
       )
     }));
-    showToast(lang === 'ar' ? 'تم حفظ تفاصيل الفيلم بنجاح' : 'Film details updated successfully');
+    showToast('Film details updated successfully');
   };
 
   const deleteProject = (id) => {
@@ -649,7 +606,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       projects: prev.projects.filter((p) => p.id !== id)
     }));
-    showToast(lang === 'ar' ? 'تم حذف الفيلم' : 'Film removed', 'info');
+    showToast('Film removed', 'info');
   };
 
   // Services (Practice Areas) CRUD
@@ -662,7 +619,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       practiceAreas: [...(prev.practiceAreas || []), serviceWithId]
     }));
-    showToast(lang === 'ar' ? 'تمت إضافة باقة الخدمة بنجاح' : 'Service package added successfully');
+    showToast('Service package added successfully');
     return serviceWithId;
   };
 
@@ -673,7 +630,7 @@ export const PortfolioProvider = ({ children }) => {
         s.id === id ? { ...s, ...updatedFields } : s
       )
     }));
-    showToast(lang === 'ar' ? 'تم حفظ باقة الخدمة بنجاح' : 'Service package updated successfully');
+    showToast('Service package updated successfully');
   };
 
   const deleteService = (id) => {
@@ -681,7 +638,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       practiceAreas: (prev.practiceAreas || []).filter((s) => s.id !== id)
     }));
-    showToast(lang === 'ar' ? 'تم حذف باقة الخدمة' : 'Service package removed', 'info');
+    showToast('Service package removed', 'info');
   };
 
   // Milestones CRUD
@@ -690,7 +647,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       milestones: [newMilestone, ...(prev.milestones || [])]
     }));
-    showToast(lang === 'ar' ? 'تمت إضافة المحطة التاريخية' : 'Milestone added successfully');
+    showToast('Milestone added successfully');
   };
 
   const updateMilestone = (index, updatedFields) => {
@@ -701,7 +658,7 @@ export const PortfolioProvider = ({ children }) => {
       }
       return { ...prev, milestones: list };
     });
-    showToast(lang === 'ar' ? 'تم حفظ محطة النجاح' : 'Milestone updated successfully');
+    showToast('Milestone updated successfully');
   };
 
   const deleteMilestone = (index) => {
@@ -709,7 +666,7 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       milestones: (prev.milestones || []).filter((_, i) => i !== index)
     }));
-    showToast(lang === 'ar' ? 'تم حذف المحطة' : 'Milestone removed', 'info');
+    showToast('Milestone removed', 'info');
   };
 
   // Skills update
@@ -718,19 +675,16 @@ export const PortfolioProvider = ({ children }) => {
       ...prev,
       skills: newSkills
     }));
-    showToast(lang === 'ar' ? 'تم تحديث المعدات والمهارات' : 'Gear & Capabilities updated successfully');
+    showToast('Gear & Capabilities updated successfully');
   };
 
   // Reset to default
   const resetToDefault = () => {
-    const confirmMsg =
-      lang === 'ar'
-        ? 'هل أنت متأكد من استعادة البيانات الافتراضية لشركة KMA؟'
-        : 'Are you sure you want to reset all data to KMA defaults?';
+    const confirmMsg = 'Are you sure you want to reset all data to KMA defaults?';
     if (window.confirm(confirmMsg)) {
       setData(DEFAULT_PORTFOLIO_DATA);
       localStorage.removeItem(STORAGE_KEY);
-      showToast(lang === 'ar' ? 'تمت استعادة البيانات الافتراضية' : 'Restored default KMA data!', 'info');
+      showToast('Restored default KMA data!', 'info');
     }
   };
 
@@ -744,10 +698,10 @@ export const PortfolioProvider = ({ children }) => {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      showToast(lang === 'ar' ? 'تم تصدير نسخة احتياطية من البيانات' : 'KMA complete data exported successfully!');
+      showToast('KMA complete data exported successfully!');
     } catch (e) {
       console.error(e);
-      showToast(lang === 'ar' ? 'فشل التصدير' : 'Failed to export backup.', 'error');
+      showToast('Failed to export backup.', 'error');
     }
   };
 
@@ -759,12 +713,12 @@ export const PortfolioProvider = ({ children }) => {
         const parsed = JSON.parse(event.target.result);
         if (parsed.profile && (parsed.certificates || parsed.projects)) {
           setData(parsed);
-          showToast(lang === 'ar' ? 'تم استيراد البيانات بنجاح' : 'Data imported from JSON successfully!');
+          showToast('Data imported from JSON successfully!');
         } else {
-          showToast(lang === 'ar' ? 'ملف غير صالح' : 'Invalid backup file structure.', 'error');
+          showToast('Invalid backup file structure.', 'error');
         }
       } catch (err) {
-        showToast(lang === 'ar' ? 'خطأ في قراءة الملف' : 'Error reading JSON file.', 'error');
+        showToast('Error reading JSON file.', 'error');
       }
     };
     reader.readAsText(file);
