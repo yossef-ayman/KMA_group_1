@@ -77,36 +77,6 @@ export const PortfolioPage = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // Unique issuers list for certificate filtering
-  const issuers = [
-    { id: 'all', label: lang === 'ar' ? 'كافة الاعتمادات' : 'All Accreditations' },
-    ...Array.from(new Set((data.certificates || []).map((c) => t(c.issuer)))).map((name) => ({
-      id: name,
-      label: name
-    }))
-  ];
-
-  // Filter certificates
-  const filteredCertificates = (data.certificates || []).filter((cert) => {
-    const titleText = (t(cert.title) || '').toLowerCase();
-    const issuerText = (t(cert.issuer) || '').toLowerCase();
-    const idText = (cert.credentialId || '').toLowerCase();
-    const q = certSearch.toLowerCase();
-
-    const matchesSearch = !q || titleText.includes(q) || issuerText.includes(q) || idText.includes(q);
-    const matchesIssuer = selectedIssuer === 'all' || t(cert.issuer) === selectedIssuer;
-
-    return matchesSearch && matchesIssuer;
-  });
-
-  const handleRefreshCertificates = () => {
-    setIsRefreshing(true);
-    refreshCertificates();
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 600);
-  };
-
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.phone || !contactForm.message) {
@@ -202,7 +172,7 @@ export const PortfolioPage = () => {
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [projectFilter, selectedIssuer, lang]);
+  }, [projectFilter, lang]);
 
   return (
     <div className="relative isolate overflow-hidden bg-[#faf7f2]">
@@ -736,96 +706,54 @@ export const PortfolioPage = () => {
               </div>
             </div>
 
-            {/* Direct VIP Booking Card (When public form is disabled for regular visitors) */}
-            {(!data.profile?.showBookingFormPublic && !isAdminAuthenticated) ? (
-              <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
-                <div className="p-8 sm:p-10 rounded-3xl bg-white border border-[#ded0bf] shadow-xl space-y-6">
-                  <div className="flex items-center justify-between pb-5 border-b border-[#f0e6d6]">
-                    <div>
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-2">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                        <span>{lang === 'ar' ? 'حجوزات VIP المباشرة' : 'VIP Direct Booking'}</span>
-                      </div>
-                      <h4 className="text-xl sm:text-2xl font-bold text-stone-900 judicial-heading">
-                        {lang === 'ar' ? 'تواصل معنا مباشرة لحجز موعدك' : 'Direct Concierge & Event Reservations'}
-                      </h4>
-                      <p className="text-xs sm:text-sm text-stone-600 mt-1.5 leading-relaxed">
-                        {lang === 'ar'
-                          ? 'لضمان أعلى درجات الخصوصية والتنسيق الفوري لحفلات الزفاف والإنتاجات الكبرى، يتم استقبال وتأكيد الحجوزات مباشرة عبر الواتساب والمكالمات الخاصة.'
-                          : 'To ensure bespoke attention and dedicated cinema crews for every royal wedding, bookings and date checks are coordinated directly with our directors.'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* VIP Actions */}
-                  <div className="space-y-3 pt-2">
-                    {data.profile?.phone && (
-                      <a
-                        href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                          'Hello KMA Wedding & Media Production, I would like to inquire about booking your cinematic team for an upcoming event.'
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01]"
-                      >
+            {/* Interactive Wedding Booking Form (Permanently restored for all visitors) */}
+            <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
+              <div className="p-8 sm:p-10 rounded-3xl bg-white border border-[#ded0bf] shadow-xl space-y-6">
+                {/* Fast WhatsApp Bar */}
+                {data.profile?.phone && (
+                  <div className="p-4 rounded-2xl bg-[#f0faf3] border border-[#c3ebce] flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#25D366] text-white flex items-center justify-center shadow-sm shrink-0">
                         <Phone className="w-5 h-5 fill-current" />
-                        <span>{lang === 'ar' ? 'تحدث مباشرة مع فريق الحجوزات عبر واتساب' : 'Chat Directly via WhatsApp'}</span>
-                      </a>
-                    )}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {data.profile?.phone && (
-                        <a
-                          href={`tel:${data.profile.phone.replace(/[^+\d]/g, '')}`}
-                          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#fbf9f6] hover:bg-[#f6eee4] border border-[#ded0bf] text-stone-800 font-bold text-xs transition-colors shadow-sm"
-                        >
-                          <Phone className="w-4 h-4 text-amber-800" />
-                          <span>{lang === 'ar' ? 'اتصال هاتفي مباشر' : 'Call Studio Director'}</span>
-                        </a>
-                      )}
-                      {data.profile?.email && (
-                        <a
-                          href={`mailto:${data.profile.email}?subject=VIP%20Event%20Booking%20Inquiry`}
-                          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#fbf9f6] hover:bg-[#f6eee4] border border-[#ded0bf] text-stone-800 font-bold text-xs transition-colors shadow-sm"
-                        >
-                          <Mail className="w-4 h-4 text-amber-800" />
-                          <span>{lang === 'ar' ? 'مراسلة عبر الإيميل' : 'Send Formal Inquiry'}</span>
-                        </a>
-                      )}
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-stone-900">
+                          {lang === 'ar' ? 'تفضل التواصل المباشر والسريع؟' : 'Prefer instant direct concierge?'}
+                        </div>
+                        <div className="text-[11px] text-stone-500">
+                          {lang === 'ar' ? 'فريق الحجوزات متواجد للرد على استفساراتكم فوراً' : 'Available 24/7 for date checks & packages'}
+                        </div>
+                      </div>
                     </div>
+                    <a
+                      href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                        'Hello KMA Wedding & Media Production, I would like to inquire about booking your cinematic team for an upcoming event.'
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs shadow-sm transition-all text-center shrink-0 flex items-center justify-center gap-1.5"
+                    >
+                      <Phone className="w-3.5 h-3.5 fill-current" />
+                      <span>{lang === 'ar' ? 'محادثة واتساب فورية' : 'Chat via WhatsApp'}</span>
+                    </a>
                   </div>
+                )}
 
-                  <div className="pt-4 border-t border-[#f0e6d6] flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500 font-medium">
-                    <span>⚡ {lang === 'ar' ? 'رد فوري خلال دقائق' : 'Fast response within minutes'}</span>
-                    <span>🔒 {lang === 'ar' ? 'حجوزات مؤكدة وسرية تامة' : 'Private & Confidential'}</span>
-                    <span>🌟 {lang === 'ar' ? 'تغطية داخل وخارج مصر' : 'Worldwide Destination Coverage'}</span>
+                <div className="flex items-center justify-between pb-4 border-b border-[#f0e6d6]">
+                  <div>
+                    <h4 className="text-xl font-bold text-stone-900 judicial-heading">
+                      {lang === 'ar' ? 'استمارة حجز موعد ومناسبة' : 'Event Booking Form'}
+                    </h4>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      {lang === 'ar'
+                        ? 'احجز موعدك مبكراً لضمان توافر فريق التصوير في يومك المميز'
+                        : 'Book in advance to secure our cinematography crew for your date'}
+                    </p>
                   </div>
+                  <Sparkles className="w-5 h-5 text-amber-700 shrink-0" />
                 </div>
-              </div>
-            ) : (
-              /* Interactive Wedding Booking Form (Shown if enabled or admin preview) */
-              <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
-                <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-xl">
-                  {isAdminAuthenticated && !data.profile?.showBookingFormPublic && (
-                    <div className="mb-4 p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-mono flex items-center justify-between">
-                      <span>👁️ Admin Preview: This form is currently HIDDEN from regular visitors.</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#f0e6d6]">
-                    <div>
-                      <h4 className="text-lg font-bold text-stone-900 judicial-heading">
-                        {lang === 'ar' ? 'استمارة حجز موعد ومناسبة' : 'Event Booking Form'}
-                      </h4>
-                      <p className="text-xs text-stone-500 mt-0.5">
-                        {lang === 'ar'
-                          ? 'احجز موعدك مبكراً لضمان توافر فريق التصوير في يومك المميز'
-                          : 'Book in advance to secure our cinematography crew for your date'}
-                      </p>
-                    </div>
-                    <Sparkles className="w-5 h-5 text-amber-700 shrink-0" />
-                  </div>
 
-                  <form onSubmit={handleSendMessage} className="space-y-4">
+                <form onSubmit={handleSendMessage} className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
@@ -974,10 +902,9 @@ export const PortfolioPage = () => {
                   </form>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
-  );
-};
+        </section>
+      </div>
+    );
+  };

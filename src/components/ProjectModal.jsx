@@ -25,12 +25,22 @@ export const ProjectModal = () => {
 
   const proj = activeModalProject;
 
-  // Determine video embed (YouTube, Vimeo, or direct MP4/stream)
+  // Determine video embed (Google Drive, YouTube, Vimeo, Dropbox, or direct MP4/stream)
   const getVideoEmbed = (url) => {
     if (!url || typeof url !== 'string') return null;
     const trimmed = url.trim();
     if (!trimmed) return null;
 
+    // 1. Google Drive Video (100% Free, zero server storage, plays directly in modal)
+    const driveMatch = trimmed.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      return {
+        type: 'iframe',
+        src: `https://drive.google.com/file/d/${driveMatch[1]}/preview`
+      };
+    }
+
+    // 2. YouTube
     const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
     if (ytMatch) {
       return {
@@ -39,6 +49,7 @@ export const ProjectModal = () => {
       };
     }
 
+    // 3. Vimeo
     const vimeoMatch = trimmed.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
     if (vimeoMatch) {
       return {
@@ -47,6 +58,16 @@ export const ProjectModal = () => {
       };
     }
 
+    // 4. Dropbox Direct Stream
+    if (trimmed.includes('dropbox.com')) {
+      const dbUrl = trimmed.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace(/[?&]dl=[01]/, '');
+      return {
+        type: 'video',
+        src: dbUrl
+      };
+    }
+
+    // 5. Direct MP4 / WebM / Stream
     return {
       type: 'video',
       src: trimmed
@@ -240,7 +261,7 @@ export const ProjectModal = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {proj.liveUrl && (
+            {(!videoEmbed && proj.liveUrl) && (
               <a
                 href={proj.liveUrl}
                 target="_blank"

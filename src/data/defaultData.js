@@ -23,24 +23,24 @@ export const DEFAULT_PORTFOLIO_DATA = {
     mission: "Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence for every couple.",
     stats: [
       {
-        value: "+180",
-        label: "Weddings Documented",
-        desc: "Celebrated across Egypt & Arab World"
+        value: "+35",
+        label: "Wedding & Media Films",
+        desc: "Featured cinema productions & highlights"
       },
       {
         value: "+6",
         label: "Years of Filmmaking",
-        desc: "Pioneering wedding cinema"
+        desc: "Specialized in luxury wedding cinema since 2018"
       },
       {
-        value: "12",
-        label: "Elite Cinema Crew",
-        desc: "Directors, Cinematographers & Colorists"
+        value: "6",
+        label: "Premier Luxury Venues",
+        desc: "Four Seasons, Mena House, Ritz-Carlton & more"
       },
       {
         value: "100%",
-        label: "5-Star Couple Reviews",
-        desc: "Unmatched satisfaction rate"
+        label: "5-Star Client Rating",
+        desc: "Tailored delivery for distinguished couples"
       }
     ]
   },

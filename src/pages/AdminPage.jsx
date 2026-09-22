@@ -133,10 +133,10 @@ export const AdminPage = () => {
 
   const [statsList, setStatsList] = useState(
     data.profile.stats || [
-      { value: '+180', label: 'Luxury Weddings Documented', desc: 'Crafted with cinematic precision across premier venues' },
-      { value: '+6', label: 'Years of Cinematic Mastery', desc: 'Specializing in fine-art wedding storytelling' },
-      { value: '12', label: 'Dedicated Film Specialists', desc: 'Expert directors, aerial pilots & editors' },
-      { value: '100%', label: 'Five-Star Experience', desc: 'Exclusive tailored delivery for distinguished couples' }
+      { value: '+35', label: 'Wedding & Media Films', desc: 'Featured cinema productions & highlights' },
+      { value: '+6', label: 'Years of Filmmaking', desc: 'Specialized in luxury wedding cinema since 2018' },
+      { value: '6', label: 'Premier Luxury Venues', desc: 'Four Seasons, Mena House, Ritz-Carlton & more' },
+      { value: '100%', label: 'Five-Star Client Rating', desc: 'Tailored delivery for distinguished couples' }
     ]
   );
 
@@ -1652,17 +1652,17 @@ export const AdminPage = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Direct Video Stream URL (Instant Video Playback)
+                      Video Link • رابط الفيديو (Google Drive / YouTube / Vimeo / MP4)
                     </label>
                     <input
                       type="url"
                       value={projFormData.videoUrl}
                       onChange={(e) => setProjFormData({ ...projFormData, videoUrl: e.target.value })}
-                      placeholder="https://domain.com/video.mp4 or direct video link"
+                      placeholder="e.g. Google Drive link, YouTube, Vimeo, or MP4..."
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 font-mono"
                     />
                     <p className="text-[10px] text-stone-500 mt-1">
-                      Plays immediately with sound and cinema controls when clients click the video card or play button.
+                      💡 مجاني 100% وبدون استهلاك أي مساحة من السيرفر: ضع رابط مشاركة الفيديو من <span className="font-bold text-amber-900">Google Drive</span> أو <span className="font-bold text-amber-900">YouTube</span> أو <span className="font-bold text-amber-900">Vimeo</span> أو رابط MP4 مباشر، وسيبدأ الفيديو في العمل تلقائياً داخل الموقع فوراً عند الضغط على الفيلم!
                     </p>
                   </div>
 
