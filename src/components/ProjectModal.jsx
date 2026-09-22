@@ -33,26 +33,39 @@ export const ProjectModal = () => {
       />
 
       <div className="relative w-full max-w-3xl bg-[#fdfbf7] rounded-3xl border border-[#ded0bf] shadow-2xl overflow-hidden z-10 my-8">
-        {/* Modal Header with Image & Overlay */}
-        <div className="relative h-60 sm:h-72 w-full overflow-hidden bg-stone-900">
-          <img
-            src={proj.imageUrl || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1200"}
-            alt={t(proj.title)}
-            className="w-full h-full object-cover opacity-85"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/50 to-stone-900/30" />
+        {/* Modal Header with Video or Image */}
+        <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-stone-950 flex items-center justify-center">
+          {proj.videoUrl ? (
+            <video
+              src={proj.videoUrl}
+              poster={proj.imageUrl}
+              controls
+              autoPlay
+              playsInline
+              className="w-full h-full object-cover z-0"
+            />
+          ) : (
+            <>
+              <img
+                src={proj.imageUrl || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1200"}
+                alt={t(proj.title)}
+                className="w-full h-full object-cover opacity-85"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/50 to-stone-900/30" />
+            </>
+          )}
 
           {/* Close button */}
           <button
             onClick={() => setActiveModalProject(null)}
-            className="absolute top-4 right-4 rtl:right-auto rtl:left-4 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-md transition-colors border border-white/20"
+            className="absolute top-4 right-4 rtl:right-auto rtl:left-4 p-2 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-md transition-colors border border-white/20 z-20 shadow-lg"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
 
           {/* Category & Status Pill */}
-          <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2">
+          <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 z-20">
             <span className="px-3.5 py-1 text-xs font-bold rounded-full bg-amber-900/90 text-amber-100 border border-amber-500/50 shadow-md flex items-center gap-1.5">
               <Film className="w-3.5 h-3.5" />
               <span>{t(proj.categoryLabel)}</span>

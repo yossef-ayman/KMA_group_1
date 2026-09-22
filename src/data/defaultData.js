@@ -19,26 +19,28 @@ export const DEFAULT_PORTFOLIO_DATA = {
       youtube: "https://youtube.com/@kmawedding",
       tiktok: "https://tiktok.com/@kmawedding"
     },
+    vision: "To immortalize your once-in-a-lifetime celebrations into timeless cinema films that evoke deep emotions for generations.",
+    mission: "Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence for every couple.",
     stats: [
       {
-        value: "+950",
-        label: "Weddings & Events Documented",
-        desc: "Celebrated across Egypt & Middle East"
+        value: "+180",
+        label: "Weddings Documented",
+        desc: "Celebrated across Egypt & Arab World"
       },
       {
-        value: "+10",
-        label: "Years of Creative Excellence",
-        desc: "Pioneering visual storytelling"
+        value: "+6",
+        label: "Years of Filmmaking",
+        desc: "Pioneering wedding cinema"
       },
       {
-        value: "25+",
-        label: "Professional Cinema Crew",
-        desc: "Specialized directors & cinematographers"
+        value: "12",
+        label: "Elite Cinema Crew",
+        desc: "Directors, Cinematographers & Colorists"
       },
       {
-        value: "99.8%",
-        label: "Client Satisfaction Rate",
-        desc: "Unmatched reviews & recommendations"
+        value: "100%",
+        label: "5-Star Couple Reviews",
+        desc: "Unmatched satisfaction rate"
       }
     ]
   },
@@ -116,6 +118,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
       outcome: "Delivered an 8-minute 4K cinematic film, handcrafted Italian leather album, and full archival raw footage with glowing client acclaim.",
       techStack: ["Sony FX6 / FX3", "DJI Cinema Drone", "Custom Color Grading", "Same Day Edit"],
       liveUrl: "https://kmawedding.com/portfolio/royal-wedding",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
       githubUrl: "https://instagram.com/kma_wedding",
       imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800",
       featured: true
@@ -133,6 +136,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
       outcome: "Delivered a cinematic teaser film and 450+ fine-art retouched high-resolution photographs in a digital gallery.",
       techStack: ["Outdoor Cinematography", "Golden Hour Lighting", "Coastal Palette", "Fine Art Gallery"],
       liveUrl: "https://kmawedding.com/portfolio/gouna-wedding",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
       githubUrl: "https://instagram.com/kma_wedding",
       imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=800",
       featured: true
@@ -150,6 +154,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
       outcome: "Continuous 8-hour live broadcast, accompanied by 20+ viral short-form videos delivered for real-time digital release.",
       techStack: ["Multi-Cam Live Switch", "Broadcast Direction", "Social Media Reels", "VIP Interviews"],
       liveUrl: "https://kmawedding.com/portfolio/annual-summit",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
       githubUrl: "https://kmawedding.com/events",
       imageUrl: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800",
       featured: true
@@ -167,6 +172,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
       outcome: "Designed and produced a bespoke handcrafted Italian leather album with lifetime color and paper archival guarantee.",
       techStack: ["Editorial Studio Lighting", "Natural Skin Retouching", "Italian Printmaking", "Custom Album Layout"],
       liveUrl: "https://kmawedding.com/portfolio/bridal-session",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
       githubUrl: "https://instagram.com/kma_wedding",
       imageUrl: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&q=80&w=800",
       featured: false
@@ -184,6 +190,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
       outcome: "Produced a dynamic teaser film and full-length feature movie that garnered widespread appreciation from the couple and guests.",
       techStack: ["Low-Light Sensor Tech", "Cine Prime Optics", "120fps Slow-Motion", "Dynamic Sound Design"],
       liveUrl: "https://kmawedding.com/portfolio/outdoor-wedding",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
       githubUrl: "https://instagram.com/kma_wedding",
       imageUrl: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&q=80&w=800",
       featured: false
@@ -201,6 +208,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
       outcome: "Generated over 2M organic impressions across digital platforms, successfully establishing brand visual identity.",
       techStack: ["Commercial Direction", "Visual Effects", "Master Audio Mastering", "Omni-Platform Delivery"],
       liveUrl: "https://kmawedding.com/portfolio/commercial-campaign",
+      videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
       githubUrl: "https://kmawedding.com/media",
       imageUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800",
       featured: true
@@ -264,25 +272,21 @@ export const DEFAULT_PORTFOLIO_DATA = {
 
   milestones: [
     {
-      year: "2024",
-      title: "Surpassed 950 Celebrated Weddings & Events",
-      description: "Expanded our cinema camera fleet and upgraded aerial drone systems to the latest generation of digital cinematography."
-    },
-    {
-      year: "2023",
-      title: "Awarded Best Middle East Wedding Film Production",
-      description: "Claimed 1st place in regional industry accolades for cinematic excellence and emotional storytelling."
-    },
-    {
-      year: "2020",
-      title: "Flagship Studio Launch & Color Suite Opening",
-      description: "Opened our modern production facility with dedicated mastering suites and multi-camera live broadcast infrastructure."
-    },
-    {
-      year: "2015",
-      title: "Founding of KMA with a Cinematic Vision",
-      description: "Launched with a singular passion: turning weddings and milestones into timeless visual masterpieces."
+      year: "2018 - Present",
+      title: "The KMA Filmmaking Heritage & Creative Journey",
+      description: "Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across Egypt's most prestigious venues."
     }
+  ],
+
+  partners: [
+    { name: "Four Seasons Nile Plaza", venueType: "Royal Hotel & Ballrooms", location: "Cairo" },
+    { name: "Mena House Pyramids", venueType: "Historic Palace Venue", location: "Giza" },
+    { name: "The Nile Ritz-Carlton", venueType: "Luxury Nile Ballroom", location: "Downtown Cairo" },
+    { name: "Kempinski Royal Maxim", venueType: "Palace Ballrooms", location: "New Cairo" },
+    { name: "Dusit Thani LakeView", venueType: "Open-Air Lakes & Gardens", location: "New Cairo" },
+    { name: "El Gouna Destination", venueType: "Beachfront & Red Sea Marinas", location: "Red Sea" },
+    { name: "Marassi & Hacienda", venueType: "Exclusive Coastal Weddings", location: "North Coast" },
+    { name: "Baron Empain Palace", venueType: "Heritage Landmark Celebrations", location: "Heliopolis" }
   ],
 
   skills: [

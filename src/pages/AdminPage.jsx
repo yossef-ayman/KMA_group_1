@@ -113,6 +113,8 @@ export const AdminPage = () => {
     title: safeVal(data.profile.title),
     tagline: safeVal(data.profile.tagline),
     bio: safeVal(data.profile.bio),
+    vision: safeVal(data.profile.vision),
+    mission: safeVal(data.profile.mission),
     location: safeVal(data.profile.location),
     email: safeVal(data.profile.email),
     notificationEmail: data.profile.notificationEmail || data.profile.email || 'contact@kmawedding.com',
@@ -131,10 +133,10 @@ export const AdminPage = () => {
 
   const [statsList, setStatsList] = useState(
     data.profile.stats || [
-      { value: '+950', label: 'Weddings & Events Documented', desc: 'Celebrated across Egypt & Middle East' },
-      { value: '+10', label: 'Years of Creative Excellence', desc: 'Pioneering visual storytelling' },
-      { value: '25+', label: 'Professional Cinema Crew', desc: 'Specialized directors & cinematographers' },
-      { value: '99.8%', label: 'Client Satisfaction Rate', desc: 'Unmatched reviews & recommendations' }
+      { value: '+180', label: 'Luxury Weddings Documented', desc: 'Crafted with cinematic precision across premier venues' },
+      { value: '+6', label: 'Years of Cinematic Mastery', desc: 'Specializing in fine-art wedding storytelling' },
+      { value: '12', label: 'Dedicated Film Specialists', desc: 'Expert directors, aerial pilots & editors' },
+      { value: '100%', label: 'Five-Star Experience', desc: 'Exclusive tailored delivery for distinguished couples' }
     ]
   );
 
@@ -145,6 +147,8 @@ export const AdminPage = () => {
       title: safeVal(data.profile.title),
       tagline: safeVal(data.profile.tagline),
       bio: safeVal(data.profile.bio),
+      vision: safeVal(data.profile.vision),
+      mission: safeVal(data.profile.mission),
       location: safeVal(data.profile.location),
       email: safeVal(data.profile.email),
       notificationEmail: data.profile.notificationEmail || data.profile.email || 'contact@kmawedding.com',
@@ -203,6 +207,7 @@ export const AdminPage = () => {
     techStack: '',
     liveUrl: '',
     githubUrl: '',
+    videoUrl: '',
     imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
   });
 
@@ -221,6 +226,7 @@ export const AdminPage = () => {
       techStack: 'Sony FX3, DJI Cinema Drone, Master Color Grading, Sound Design',
       liveUrl: 'https://vimeo.com/...',
       githubUrl: 'https://instagram.com/kma_wedding',
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
     });
     setIsAddingProj(true);
@@ -242,6 +248,7 @@ export const AdminPage = () => {
       techStack: proj.techStack ? proj.techStack.map((s) => safeVal(s)).join(', ') : '',
       liveUrl: safeVal(proj.liveUrl),
       githubUrl: safeVal(proj.githubUrl),
+      videoUrl: safeVal(proj.videoUrl),
       imageUrl: proj.imageUrl || ''
     });
   };
@@ -270,6 +277,7 @@ export const AdminPage = () => {
       techStack: parsedTech,
       liveUrl: projFormData.liveUrl.trim(),
       githubUrl: projFormData.githubUrl.trim(),
+      videoUrl: projFormData.videoUrl.trim(),
       imageUrl: projFormData.imageUrl.trim() || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
     };
 
@@ -1196,14 +1204,41 @@ export const AdminPage = () => {
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                  About KMA & Studio Vision
+                  About KMA & Studio Summary
                 </label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={profileForm.bio}
                   onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-sm text-stone-900 focus:outline-none focus:border-amber-700 resize-none"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                    Studio Vision (الرؤية)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={profileForm.vision}
+                    onChange={(e) => setProfileForm({ ...profileForm, vision: e.target.value })}
+                    placeholder="e.g. To set the highest benchmark for luxury wedding cinema in Egypt and the Arab world..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-sm text-stone-900 focus:outline-none focus:border-amber-700 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                    Studio Mission (المهمة)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={profileForm.mission}
+                    onChange={(e) => setProfileForm({ ...profileForm, mission: e.target.value })}
+                    placeholder="e.g. We capture eternal love stories through cinematic mastery, unscripted emotion..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-sm text-stone-900 focus:outline-none focus:border-amber-700 resize-none"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1591,7 +1626,7 @@ export const AdminPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                        Watch Film / Vimeo / Video URL
+                        Watch Film / Vimeo / External URL
                       </label>
                       <input
                         type="url"
@@ -1613,6 +1648,22 @@ export const AdminPage = () => {
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Direct Video Stream URL (Instant Video Playback)
+                    </label>
+                    <input
+                      type="url"
+                      value={projFormData.videoUrl}
+                      onChange={(e) => setProjFormData({ ...projFormData, videoUrl: e.target.value })}
+                      placeholder="https://domain.com/video.mp4 or direct video link"
+                      className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 font-mono"
+                    />
+                    <p className="text-[10px] text-stone-500 mt-1">
+                      Plays immediately with sound and cinema controls when clients click the video card or play button.
+                    </p>
                   </div>
 
                   {/* Media Upload for Project Poster */}

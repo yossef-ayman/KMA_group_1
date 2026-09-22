@@ -39,16 +39,11 @@ export const PortfolioPage = () => {
 
   const [lastBookingSubmitted, setLastBookingSubmitted] = useState(null);
 
-  // Projects filter and search state
-  const [projectFilter, setProjectFilter] = useState('all');
+  // Projects filter and search state (defaults to 'weddings', All Works is at the end)
+  const [projectFilter, setProjectFilter] = useState('weddings');
   const [projectSearch, setProjectSearch] = useState('');
 
-  // Certificates filter and search state
-  const [certSearch, setCertSearch] = useState('');
-  const [selectedIssuer, setSelectedIssuer] = useState('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Contact / Event Booking form state
+  // Contact / Event Booking form state (used if public form is enabled by admin)
   const [contactForm, setContactForm] = useState({
     name: '',
     phone: '',
@@ -62,12 +57,12 @@ export const PortfolioPage = () => {
 
   // Category filters for media & wedding works
   const projectCategories = [
-    { id: 'all', label: lang === 'ar' ? 'كافة الأعمال والإنتاجات' : 'All Works' },
     { id: 'weddings', label: lang === 'ar' ? 'أعراس سينمائية' : 'Cinematic Weddings' },
     { id: 'destination', label: lang === 'ar' ? 'أعراس شاطئية وسفر' : 'Destination Weddings' },
-    { id: 'events', label: lang === 'ar' ? 'فعاليات ومؤتمرات' : 'Corporate Events' },
     { id: 'photography', label: lang === 'ar' ? 'فوتوغرافيا فنية' : 'Bridal Photography' },
-    { id: 'commercial', label: lang === 'ar' ? 'إعلانات وميديا' : 'Commercial Media' }
+    { id: 'events', label: lang === 'ar' ? 'فعاليات ومؤتمرات' : 'Corporate Events' },
+    { id: 'commercial', label: lang === 'ar' ? 'إعلانات وميديا' : 'Commercial Media' },
+    { id: 'all', label: lang === 'ar' ? 'كافة الأعمال والإنتاجات' : 'All Works' }
   ];
 
   // Filter projects
@@ -217,46 +212,76 @@ export const PortfolioPage = () => {
       <div className="absolute top-[2000px] left-5 w-[650px] h-[500px] bg-[#ece0ca]/60 blur-[160px] rounded-full pointer-events-none -z-10" />
 
       {/* ============================================================ */}
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO SECTION (Logo first on mobile)                      */}
       {/* ============================================================ */}
-      <section className="relative pt-10 pb-20 md:pt-16 md:pb-24 border-b border-[#e8dfd5]">
+      <section className="relative pt-6 pb-16 md:pt-14 md:pb-20 border-b border-[#e8dfd5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left Column: Intro */}
-            <div className="lg:col-span-7 space-y-7 text-center lg:text-left rtl:lg:text-right">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            
+            {/* Logo Brand Showpiece: Renders FIRST on mobile (order-1), and right column on desktop (lg:order-2) */}
+            <div className="order-1 lg:order-2 lg:col-span-5 flex justify-center">
+              <div className="relative group w-full max-w-sm sm:max-w-md">
+                <div className="absolute -inset-3 bg-gradient-to-r from-amber-700/20 via-yellow-600/15 to-amber-900/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition duration-500" />
+                <div className="relative rounded-3xl overflow-hidden border border-[#dfd2c0] bg-white shadow-2xl p-6 text-center space-y-5">
+                  {/* Central KMA Logo */}
+                  <div className="w-36 h-36 sm:w-48 sm:h-48 mx-auto rounded-full bg-white p-2.5 shadow-xl ring-4 ring-[#dfd2c0]/70 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500">
+                    <img
+                      src={data.profile?.logoUrl || data.profile?.avatarUrl || "/logo.png"}
+                      alt={t(data.profile?.fullName)}
+                      className="w-full h-full object-contain rounded-full"
+                      onError={(e) => { e.target.src = "/logo.png"; }}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 border-t border-[#f0e6d6] pt-3">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold border border-amber-300">
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>{lang === 'ar' ? 'فريق تصوير سينمائي ومعدات 4K/6K' : 'Cinema Crew & 4K/6K Gear'}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-stone-900 judicial-heading">
+                      {t(data.profile?.fullName)}
+                    </h3>
+                    <p className="text-xs text-stone-500 flex items-center justify-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                      <span>{t(data.profile?.location)}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Headline & Action Column: Renders SECOND on mobile (order-2), left column on desktop (lg:order-1) */}
+            <div className="order-2 lg:order-1 lg:col-span-7 space-y-6 text-center lg:text-left rtl:lg:text-right">
               {/* Trust Badge */}
-              <div className="reveal inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#f4ece1] border border-[#dfd2c0] text-amber-950 text-xs font-bold shadow-sm">
-                <Sparkles className="w-4 h-4 text-amber-800 shrink-0" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f4ece1] border border-[#dfd2c0] text-amber-950 text-xs font-bold shadow-sm">
+                <Sparkles className="w-3.5 h-3.5 text-amber-800 shrink-0" />
                 <span>
                   {lang === 'ar'
-                    ? 'KMA Wedding & Media Production • رواد التصوير السينمائي والإنتاج الإعلامي'
+                    ? 'KMA Wedding & Media Production • رواد التصوير السينمائي'
                     : 'KMA Wedding & Media Production • Premier Cinematography'}
                 </span>
               </div>
 
               {/* Title & Headline */}
-              <div className="reveal space-y-3" style={{ transitionDelay: '80ms' }}>
-                <div className="flex items-baseline justify-center lg:justify-start rtl:lg:justify-start gap-3">
+              <div className="space-y-3">
+                <div className="flex items-baseline justify-center lg:justify-start rtl:lg:justify-start gap-2.5">
                   <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-stone-900 judicial-heading">
                     <span className="gradient-gold">KMA</span>
                   </h1>
-                  <span className="text-xl sm:text-2xl uppercase tracking-widest text-stone-500 font-light">
+                  <span className="text-lg sm:text-2xl uppercase tracking-widest text-stone-500 font-light">
                     wedding
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-2xl font-bold text-stone-800 leading-snug">
-                  {t(data.profile.title)}
+                  {t(data.profile?.title)}
                 </h2>
-                <p className="text-sm sm:text-base text-stone-600 max-w-2xl leading-relaxed mx-auto lg:mx-0 font-normal">
-                  {t(data.profile.tagline)}
+                <p className="text-xs sm:text-base text-stone-600 max-w-2xl leading-relaxed mx-auto lg:mx-0 font-normal">
+                  {t(data.profile?.tagline)}
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div
-                className="reveal flex flex-wrap items-center justify-center lg:justify-start rtl:lg:justify-start gap-3.5 pt-2"
-                style={{ transitionDelay: '160ms' }}
-              >
+              <div className="flex flex-wrap items-center justify-center lg:justify-start rtl:lg:justify-start gap-3 pt-1">
                 <button
                   onClick={() => {
                     const target = document.querySelector('#contact');
@@ -266,7 +291,7 @@ export const PortfolioPage = () => {
                       window.scrollTo({ top: targetPosition, behavior: 'smooth' });
                     }
                   }}
-                  className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-lg shadow-amber-950/20 transition-all transform hover:-translate-y-0.5"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-md transition-all"
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>{lang === 'ar' ? 'احجز موعد حفل زفافك الآن' : 'Book Your Event Now'}</span>
@@ -281,132 +306,75 @@ export const PortfolioPage = () => {
                       window.scrollTo({ top: targetPosition, behavior: 'smooth' });
                     }
                   }}
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-stone-800 bg-white hover:bg-[#f6eee4] border border-[#ded0bf] shadow-sm transition-all"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-xs sm:text-sm text-stone-800 bg-white hover:bg-[#f6eee4] border border-[#ded0bf] shadow-sm transition-all"
                 >
                   <Film className="w-4 h-4 text-amber-800" />
                   <span>{lang === 'ar' ? 'معرض الأعمال السينمائية' : 'Explore Portfolio'}</span>
                 </button>
               </div>
-
-              {/* Quick Stats Grid */}
-              <div
-                className="reveal grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-6 border-t border-[#e8dfd5]"
-                style={{ transitionDelay: '240ms' }}
-              >
-                {(data.profile?.stats || []).map((stat, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-2xl bg-white/95 border border-[#e8dfd5] text-center shadow-sm hover:border-amber-400 transition-colors"
-                  >
-                    <div className="text-2xl sm:text-3xl font-bold text-stone-900 font-serif gradient-gold">
-                      {stat.value}
-                    </div>
-                    <div className="text-xs font-bold text-stone-800 mt-1">
-                      {t(stat.label)}
-                    </div>
-                    {stat.desc && (
-                      <div className="text-[10px] text-stone-500 mt-0.5">
-                        {t(stat.desc)}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Right Column: KMA Logo Brand Showpiece */}
-            <div className="reveal lg:col-span-5 flex justify-center" style={{ transitionDelay: '200ms' }}>
-              <div className="relative group w-full max-w-md">
-                <div className="absolute -inset-3 bg-gradient-to-r from-amber-700/20 via-yellow-600/15 to-amber-900/20 rounded-3xl blur-2xl opacity-80 group-hover:opacity-100 transition duration-500" />
-                <div className="relative rounded-3xl overflow-hidden border border-[#dfd2c0] bg-white shadow-2xl p-6 text-center space-y-6">
-                  {/* Central KMA Logo */}
-                  <div className="w-48 h-48 sm:w-56 sm:h-56 mx-auto rounded-full bg-white p-3 shadow-xl ring-4 ring-[#dfd2c0]/60 flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500">
-                    <img
-                      src={data.profile.logoUrl || data.profile.avatarUrl || "/logo.png"}
-                      alt={t(data.profile.fullName)}
-                      className="w-full h-full object-contain rounded-full"
-                      onError={(e) => { e.target.src = "/logo.png"; }}
-                    />
-                  </div>
-
-                  <div className="space-y-2 border-t border-[#f0e6d6] pt-4">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
-                      <Camera className="w-3.5 h-3.5" />
-                      <span>{lang === 'ar' ? 'فريق تصوير سينمائي ومعدات 4K/6K' : 'Cinema Crew & 4K/6K Gear'}</span>
-                    </div>
-                    <h3 className="text-base font-bold text-stone-900 judicial-heading">
-                      {t(data.profile.fullName)}
-                    </h3>
-                    <p className="text-xs text-stone-500 flex items-center justify-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-                      <span>{t(data.profile.location)}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* ============================================================ */}
-      {/* 2. ABOUT KMA & VISION */}
+      {/* 2. VISION & MISSION SECTION                                  */}
       {/* ============================================================ */}
-      <section id="about" className="py-20 border-b border-[#e8dfd5] bg-[#f5ece1]/50">
+      <section id="about" className="py-16 sm:py-20 border-b border-[#e8dfd5] bg-[#f5ece1]/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            <div className="reveal lg:col-span-5 space-y-5">
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
-                <Heart className="w-4 h-4 text-amber-800 fill-amber-800" />
-                <span>{lang === 'ar' ? 'عن شركة KMA للإنتاج' : 'About KMA Production'}</span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading leading-snug">
-                {lang === 'ar'
-                  ? 'شغف سينمائي فريد يحول مناسباتكم إلى حكايات بصرية خالدة'
-                  : 'A unique cinematic passion turning your moments into timeless visual stories'}
-              </h3>
-              <p className="text-stone-700 leading-relaxed text-sm sm:text-base">
-                {t(data.profile.bio)}
-              </p>
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
+              <Heart className="w-4 h-4 text-amber-800 fill-amber-800" />
+              <span>{lang === 'ar' ? 'الرؤية والرسالة الفنية' : 'Our Vision & Philosophy'}</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
+              {lang === 'ar'
+                ? 'فلسفة KMA في توثيق أروع لحظات العمر'
+                : 'Crafting Visual Legacies That Transcend Time'}
+            </h3>
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+              {t(data.profile?.bio)}
+            </p>
+          </div>
 
-              <div className="pt-2 space-y-3 text-xs sm:text-sm text-stone-700">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-[#e5dacb]">
-                  <MapPin className="w-4 h-4 text-amber-800 shrink-0" />
-                  <span className="font-semibold">{t(data.profile.location)}</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-[#e5dacb]">
-                  <Mail className="w-4 h-4 text-amber-800 shrink-0" />
-                  <span className="font-mono font-semibold">{data.profile.email}</span>
-                </div>
+          {/* Dual Luxury Cards: Vision & Mission */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Vision Card */}
+            <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center font-bold shadow-sm">
+                <Sparkles className="w-6 h-6 text-amber-800" />
+              </div>
+              <h4 className="text-lg font-bold text-stone-900 judicial-heading">
+                {lang === 'ar' ? 'رؤيتنا الفنية (Our Vision)' : 'Our Artistic Vision'}
+              </h4>
+              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
+                {t(data.profile?.vision) ||
+                  (lang === 'ar'
+                    ? 'أن نخلد أثمن لحظات زفافكم في تحف سينمائية باهرة تنبض بالمشاعر وتبقى ملهمة للأجيال القادمة.'
+                    : 'To immortalize your once-in-a-lifetime celebrations into timeless cinema films that evoke deep emotions for generations.')}
+              </p>
+              <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-900 font-bold uppercase tracking-wider">
+                <span>✦ {lang === 'ar' ? 'رواية بصرية خالدة' : 'Timeless Visual Storytelling'}</span>
               </div>
             </div>
 
-            {/* Milestones */}
-            <div className="reveal lg:col-span-7 space-y-5" style={{ transitionDelay: '120ms' }}>
-              <h4 className="text-xl font-bold text-stone-900 flex items-center gap-2.5 judicial-heading">
-                <Sparkles className="w-5 h-5 text-amber-800" />
-                <span>{lang === 'ar' ? 'محطات التميز والريادة' : 'Our Creative Journey'}</span>
+            {/* Mission Card */}
+            <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+              <div className="w-12 h-12 rounded-2xl bg-[#efe6d8] text-amber-950 border border-[#dfd2c0] flex items-center justify-center font-bold shadow-sm">
+                <Camera className="w-6 h-6 text-amber-800" />
+              </div>
+              <h4 className="text-lg font-bold text-stone-900 judicial-heading">
+                {lang === 'ar' ? 'رسالتنا السينمائية (Our Mission)' : 'Our Filmmaking Mission'}
               </h4>
-
-              <div className="space-y-4">
-                {(data.milestones || []).map((ms, idx) => (
-                  <div
-                    key={idx}
-                    className="p-5 rounded-2xl bg-white border border-[#e8dfd5] hover:border-[#cbb497] transition-all shadow-sm flex items-start gap-4"
-                  >
-                    <div className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-950 font-bold font-mono text-sm shrink-0 border border-amber-300">
-                      {ms.year}
-                    </div>
-                    <div className="space-y-1">
-                      <h5 className="text-sm sm:text-base font-bold text-stone-900 judicial-heading">
-                        {t(ms.title)}
-                      </h5>
-                      <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                        {t(ms.description)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
+                {t(data.profile?.mission) ||
+                  (lang === 'ar'
+                    ? 'دمج أحدث تقنيات كاميرات السينما والعدسات البصرية مع التوثيق الإخراجي العفوي لتقديم أعلى معايير الجودة والإبهار البصري.'
+                    : 'Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence.')}
+              </p>
+              <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-900 font-bold uppercase tracking-wider">
+                <span>✦ {lang === 'ar' ? 'دقة سينمائية 4K/6K' : '4K/6K Cinema Standard'}</span>
               </div>
             </div>
           </div>
@@ -414,32 +382,152 @@ export const PortfolioPage = () => {
       </section>
 
       {/* ============================================================ */}
-      {/* 3. PROJECTS & PORTFOLIO SHOWCASE */}
+      {/* 3. KEY NUMBERS & REALISTIC STATS                             */}
       {/* ============================================================ */}
-      <section id="projects" className="py-24 border-b border-[#e8dfd5] bg-white/60">
+      <section id="stats" className="py-14 sm:py-16 border-b border-[#e8dfd5] bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-10 space-y-1.5">
+            <h3 className="text-xl sm:text-2xl font-bold text-stone-900 judicial-heading">
+              {lang === 'ar' ? 'أرقام تعكس التميز والجودة' : 'Highlights in Numbers'}
+            </h3>
+            <p className="text-xs text-stone-500 font-medium">
+              {lang === 'ar' ? 'مسيرة موثقة بالنجاح ورضا عملائنا الكرام' : 'A documented track record of client trust and excellence'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {(data.profile?.stats || []).map((stat, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-2xl bg-[#fbf9f6] border border-[#e8dfd5] text-center shadow-sm hover:border-amber-400 transition-colors space-y-1.5"
+              >
+                <div className="text-3xl sm:text-4xl font-extrabold text-stone-900 font-serif gradient-gold">
+                  {stat.value}
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-stone-800">
+                  {t(stat.label)}
+                </div>
+                {stat.desc && (
+                  <div className="text-[11px] text-stone-500 font-medium">
+                    {t(stat.desc)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 4. THE LEGACY & VENUES / PARTITIONS WE WORKED WITH           */}
+      {/* ============================================================ */}
+      <section id="partners" className="py-16 sm:py-20 border-b border-[#e8dfd5] bg-[#f5ece1]/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          {/* Single Signature Milestone / Journey Block */}
+          <div>
+            <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
+                <Clock className="w-4 h-4 text-amber-800" />
+                <span>{lang === 'ar' ? 'رحلة KMA الإبداعية' : 'The Creative Legacy'}</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 judicial-heading">
+                {lang === 'ar' ? 'سنوات من الريادة في عالم التصوير السينمائي' : 'Our Creative Journey & Heritage'}
+              </h3>
+            </div>
+
+            <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left rtl:sm:text-right">
+              <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-800 to-yellow-900 text-white font-bold font-mono text-sm shrink-0 shadow-sm">
+                {(data.milestones && data.milestones[0]?.year) || "2018 - Present"}
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-base sm:text-lg font-bold text-stone-900 judicial-heading">
+                  {(data.milestones && t(data.milestones[0]?.title)) || (lang === 'ar' ? 'تاريخ حافل بتوثيق أروع الأعراس الملكية' : 'The KMA Filmmaking Heritage & Creative Journey')}
+                </h4>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
+                  {(data.milestones && t(data.milestones[0]?.description)) ||
+                    (lang === 'ar'
+                      ? 'أكثر من 6 سنوات من توثيق أبهى الأفراح والفعاليات الكبرى، ووضع بصمة بصرية فريدة تجمع بين الرقي والابتكار عبر أروع فنادق وقاعات مصر.'
+                      : 'Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across Egypt\'s most prestigious venues.')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Partitions & Prestige Venues We Filmed At */}
+          <div className="pt-4">
+            <div className="text-center max-w-xl mx-auto mb-8 space-y-1.5">
+              <h4 className="text-lg sm:text-xl font-bold text-stone-900 judicial-heading flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-700" />
+                <span>{lang === 'ar' ? 'أبرز القاعات والفنادق التي وثقنا فيها أسعد اللحظات' : 'Prestigious Venues We Have Filmed At'}</span>
+              </h4>
+              <p className="text-xs text-stone-500 font-medium">
+                {lang === 'ar' ? 'تغطية سينمائية شاملة في أرقى فنادق ومنتجعات مصر والشرق الأوسط' : 'Experienced across top-tier luxury ballrooms, open-air venues, and coastal resorts'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+              {(data.partners || [
+                { name: "Four Seasons Nile Plaza", venueType: "Royal Hotel & Ballrooms", location: "Cairo" },
+                { name: "Mena House Pyramids", venueType: "Historic Palace Venue", location: "Giza" },
+                { name: "The Nile Ritz-Carlton", venueType: "Luxury Nile Ballroom", location: "Downtown Cairo" },
+                { name: "Kempinski Royal Maxim", venueType: "Palace Ballrooms", location: "New Cairo" },
+                { name: "Dusit Thani LakeView", venueType: "Open-Air Lakes & Gardens", location: "New Cairo" },
+                { name: "El Gouna Destination", venueType: "Beachfront & Red Sea Marinas", location: "Red Sea" },
+                { name: "Marassi & Hacienda", venueType: "Exclusive Coastal Weddings", location: "North Coast" },
+                { name: "Baron Empain Palace", venueType: "Heritage Landmark Celebrations", location: "Heliopolis" }
+              ]).map((partner, pIdx) => (
+                <div
+                  key={pIdx}
+                  className="p-4 rounded-2xl bg-white border border-[#ded0bf] hover:border-amber-700 transition-all text-center shadow-sm space-y-1 group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-[#f7efe4] text-amber-900 mx-auto flex items-center justify-center mb-1 group-hover:bg-amber-100 transition-colors">
+                    <MapPin className="w-4 h-4 text-amber-800" />
+                  </div>
+                  <div className="text-xs font-bold text-stone-900 line-clamp-1">
+                    {partner.name}
+                  </div>
+                  <div className="text-[10px] text-stone-500 font-medium line-clamp-1">
+                    {partner.venueType}
+                  </div>
+                  <div className="text-[10px] font-mono text-amber-900 font-bold">
+                    {partner.location}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* 5. FEATURED FILMS & PORTFOLIO SHOWCASE (Compact video items) */}
+      {/* ============================================================ */}
+      <section id="projects" className="py-20 border-b border-[#e8dfd5] bg-white/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="reveal flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900 mb-2">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900 mb-1.5">
                 <Film className="w-4 h-4 text-amber-800" />
-                <span>{lang === 'ar' ? 'معرض الأعمال السينمائية' : 'Cinematography & Media Portfolio'}</span>
+                <span>{lang === 'ar' ? 'معرض الأفلام والإنتاجات' : 'Cinematography & Films'}</span>
               </div>
-              <h3 className="text-2xl sm:text-4xl font-bold text-stone-900 tracking-tight judicial-heading">
+              <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
                 {lang === 'ar'
-                  ? 'أحدث إنتاجات وأفلام الأعراس والفعاليات'
-                  : 'Featured Wedding Films & Event Highlights'}
+                  ? 'أحدث أعمال وأفلام KMA السينمائية'
+                  : 'Featured Films & Visual Highlights'}
               </h3>
-              <p className="text-stone-600 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
+              <p className="text-stone-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                 {lang === 'ar'
-                  ? 'تصفح مجموعة من أروع أفلام الزفاف الملكية، الجلسات الشاطئية، والتغطيات الإعلامية الكبرى المنفذة بعدسات KMA.'
-                  : 'Browse our latest wedding films, destination beach sessions, and premier media coverage produced by KMA.'}
+                  ? 'شاهد لقطات حية من أروع الأفراح والفعاليات. اضغط على أي عمل لتشغيل الفيديو فوراً بجودة سينمائية.'
+                  : 'Watch live highlights from our premier weddings. Click on any work to play the video instantly.'}
               </p>
             </div>
 
-            <div className="text-xs font-bold text-amber-950 bg-amber-100/90 px-4 py-2 rounded-xl border border-amber-300 shrink-0">
+            <div className="text-xs font-bold text-amber-950 bg-amber-100/90 px-3.5 py-1.5 rounded-xl border border-amber-300 shrink-0 self-start md:self-end">
               <span>
-                {filteredProjects.length} {lang === 'ar' ? 'أعمال معروضة' : 'Projects Shown'}
+                {filteredProjects.length} {lang === 'ar' ? 'أعمال معروضة' : 'Films Shown'}
               </span>
             </div>
           </div>
@@ -456,19 +544,19 @@ export const PortfolioPage = () => {
                 placeholder={
                   lang === 'ar'
                     ? 'ابحث في الأعمال بالاسم أو المكان أو نوع التصوير...'
-                    : 'Search portfolio by title, location, or style...'
+                    : 'Search films by title, venue, or style...'
                 }
-                className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-3 rounded-xl bg-white border border-[#ded0bf] text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 shadow-sm"
+                className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 rounded-xl bg-white border border-[#ded0bf] text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 shadow-sm"
               />
             </div>
 
-            {/* Category tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+            {/* Category tabs (Specific wedding categories first, All Works at the end) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
               {projectCategories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setProjectFilter(cat.id)}
-                  className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                     projectFilter === cat.id
                       ? 'bg-amber-800 text-white font-bold shadow-sm'
                       : 'bg-white text-stone-700 hover:bg-[#f6eee4] border border-[#ded0bf]'
@@ -480,11 +568,11 @@ export const PortfolioPage = () => {
             </div>
           </div>
 
-          {/* Projects Grid */}
+          {/* Compact Project Cards ("ايتميز صغيرة") with Instant Video & Photo */}
           {filteredProjects.length === 0 ? (
             <div className="p-12 text-center rounded-3xl bg-white border border-[#ded0bf] shadow-sm">
-              <Film className="w-12 h-12 text-stone-300 mx-auto mb-3" />
-              <p className="text-stone-600 font-medium text-sm">
+              <Film className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+              <p className="text-stone-600 font-medium text-xs sm:text-sm">
                 {lang === 'ar'
                   ? 'لم يتم العثور على أعمال مطابقة لبحثك الحالي.'
                   : 'No projects found matching your search.'}
@@ -492,306 +580,91 @@ export const PortfolioPage = () => {
               <button
                 onClick={() => {
                   setProjectSearch('');
-                  setProjectFilter('all');
+                  setProjectFilter('weddings');
                 }}
-                className="mt-3 text-xs text-amber-800 font-bold hover:underline"
+                className="mt-2 text-xs text-amber-800 font-bold hover:underline"
               >
-                {lang === 'ar' ? 'إعادة ضبط الفلاتر' : 'Reset filters'}
+                {lang === 'ar' ? 'عرض الأعراس السينمائية' : 'Reset to Weddings'}
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map((proj, idx) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredProjects.map((proj) => (
                 <div
                   key={proj.id}
                   onClick={() => setActiveModalProject(proj)}
-                  className="reveal beige-card rounded-3xl overflow-hidden cursor-pointer flex flex-col group relative transform transition-all duration-300 hover:-translate-y-1.5 border border-[#e8dfd5] hover:border-[#cbb497]"
-                  style={{ transitionDelay: `${Math.min(idx, 8) * 70}ms` }}
+                  className="beige-card rounded-2xl overflow-hidden cursor-pointer flex flex-col group relative transform transition-all duration-250 hover:-translate-y-1 border border-[#e8dfd5] hover:border-[#cbb497] shadow-sm hover:shadow-md"
                 >
-                  {/* Thumbnail Image Banner */}
-                  <div className="relative h-56 w-full bg-[#f4ede3] overflow-hidden">
+                  {/* Compact Media Header (Image + Video Play Button) */}
+                  <div className="relative h-44 sm:h-48 w-full bg-stone-900 overflow-hidden">
                     <img
                       src={proj.imageUrl || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800"}
                       alt={t(proj.title)}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/10 transition-colors flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm text-stone-900 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg transform group-hover:scale-110">
-                        <Play className="w-5 h-5 fill-stone-900 ml-0.5" />
+
+                    {/* Dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent group-hover:via-stone-950/30 transition-colors" />
+
+                    {/* Instant Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-11 h-11 rounded-full bg-amber-800/90 text-white flex items-center justify-center shadow-xl group-hover:bg-amber-700 transform group-hover:scale-110 transition-all border border-amber-300/40">
+                        <Play className="w-4 h-4 fill-white ml-0.5" />
                       </div>
                     </div>
 
-                    {/* Sector Badge */}
-                    <div className="absolute top-3 left-3 rtl:left-auto rtl:right-3">
-                      <span className="px-3 py-1 text-xs font-bold rounded-lg bg-white/95 backdrop-blur-md text-amber-950 border border-amber-300 shadow-md">
+                    {/* Top Left: Category Pill */}
+                    <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5">
+                      <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-md bg-white/95 backdrop-blur-md text-amber-950 border border-amber-300 shadow-sm">
                         {t(proj.categoryLabel)}
                       </span>
                     </div>
 
-                    {/* Package Badge */}
-                    {proj.value && (
-                      <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3">
-                        <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-stone-950/85 backdrop-blur-md text-amber-300 border border-amber-500/40 shadow-md font-mono">
-                          {proj.value}
-                        </span>
-                      </div>
-                    )}
+                    {/* Top Right: Video / 4K Pill */}
+                    <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5">
+                      <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-stone-950/85 text-amber-300 border border-amber-500/30 font-mono shadow-sm flex items-center gap-1">
+                        <Video className="w-3 h-3 text-amber-400" />
+                        <span>4K Film</span>
+                      </span>
+                    </div>
 
-                    {/* Year pill on image bottom */}
-                    <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] text-white/90 font-mono drop-shadow">
+                    {/* Bottom overlay: Year & Venue */}
+                    <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between text-[11px] text-white/90 font-mono drop-shadow">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
+                        <Clock className="w-3 h-3 text-amber-400" />
                         <span>{proj.year}</span>
                       </span>
-                      <span className="truncate max-w-[180px]">
+                      <span className="truncate max-w-[170px] text-stone-300">
                         {proj.tribunal?.split('•')[0]}
                       </span>
                     </div>
                   </div>
 
-                  {/* Card Content */}
-                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-2.5">
-                      <h4 className="text-base font-bold text-stone-900 group-hover:text-amber-800 transition-colors line-clamp-2 judicial-heading leading-snug">
+                  {/* Compact Card Content */}
+                  <div className="p-4 flex-1 flex flex-col justify-between space-y-2.5">
+                    <div>
+                      <h4 className="text-sm font-bold text-stone-900 group-hover:text-amber-800 transition-colors line-clamp-1 judicial-heading">
                         {t(proj.title)}
                       </h4>
 
-                      <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed mt-1">
                         {t(proj.description)}
                       </p>
                     </div>
 
-                    {/* Tech & Gear pills */}
-                    {proj.techStack && proj.techStack.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {proj.techStack.slice(0, 3).map((item, i) => (
-                          <span
-                            key={i}
-                            className="px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-[#f5ede1] text-stone-800 border border-[#e4d8c7]"
-                          >
-                            {t(item)}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Card Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-[#e8dfd5] text-xs font-bold text-amber-900">
-                      <span className="flex items-center gap-1.5">
-                        <Video className="w-3.5 h-3.5 text-amber-800" />
-                        <span>{lang === 'ar' ? 'مشاهدة تفاصيل العمل' : 'View Highlights'}</span>
+                    {/* Card Footer: Play / Inspect trigger */}
+                    <div className="flex items-center justify-between pt-2 border-t border-[#eee5d8] text-[11px] font-bold text-amber-900">
+                      <span className="flex items-center gap-1">
+                        <Play className="w-3 h-3 fill-amber-800 text-amber-800" />
+                        <span>{lang === 'ar' ? 'تشغيل الفيلم السينمائي' : 'Play Cinema Film'}</span>
                       </span>
-                      <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
+                      <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform text-amber-800" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 4. ACCREDITATIONS, LICENSES & AWARDS */}
-      {/* ============================================================ */}
-      <section id="certificates" className="py-24 border-b border-[#e8dfd5] bg-[#f5ece1]/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="reveal flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900 mb-2">
-                <Award className="w-4 h-4 text-amber-800" />
-                <span>{lang === 'ar' ? 'الاعتمادات والتراخيص الرسمية' : 'Accreditations & Permits'}</span>
-              </div>
-              <h3 className="text-2xl sm:text-4xl font-bold text-stone-900 tracking-tight judicial-heading">
-                {lang === 'ar'
-                  ? 'التراخيص والشهادات والجوائز المعتمدة'
-                  : 'Official Media Licenses & Industry Awards'}
-              </h3>
-              <p className="text-stone-600 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
-                {lang === 'ar'
-                  ? 'تراخيص معتمدة للإنتاج الإعلامي، اعتمادات تشغيل طائرات الدرون الجوية، وشهادات معتمدة من كبرى شركات تصنيع كاميرات السينما.'
-                  : 'Official media production permits, aerial drone commercial flight licensing, and industry awards.'}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleRefreshCertificates}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-stone-700 bg-white hover:bg-[#f6eee4] border border-[#ded0bf] shadow-sm transition-all"
-                title="Refresh"
-              >
-                <RefreshCw
-                  className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-amber-800' : 'text-stone-500'}`}
-                />
-                <span>{lang === 'ar' ? 'تحديث السجل' : 'Refresh'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Search & Issuer Filter */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-8">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={certSearch}
-                onChange={(e) => setCertSearch(e.target.value)}
-                placeholder={
-                  lang === 'ar'
-                    ? 'ابحث في التراخيص والشهادات...'
-                    : 'Search accreditations and awards...'
-                }
-                className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-3 rounded-xl bg-white border border-[#ded0bf] text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 shadow-sm"
-              />
-            </div>
-
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-              {issuers.map((issuer) => (
-                <button
-                  key={issuer.id}
-                  onClick={() => setSelectedIssuer(issuer.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                    selectedIssuer === issuer.id
-                      ? 'bg-amber-800 text-white font-bold shadow-sm'
-                      : 'bg-white text-stone-700 hover:bg-[#f6eee4] border border-[#ded0bf]'
-                  }`}
-                >
-                  {issuer.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Certificates Grid */}
-          {filteredCertificates.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white border border-[#ded0bf] shadow-sm">
-              <Award className="w-12 h-12 text-stone-300 mx-auto mb-3" />
-              <p className="text-stone-600 font-medium text-sm">
-                {lang === 'ar'
-                  ? 'لم يتم العثور على اعتمادات مطابقة لبحثك.'
-                  : 'No accreditations found matching your search.'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredCertificates.map((cert, certIdx) => (
-                <div
-                  key={cert.id}
-                  onClick={() => setActiveModalCert(cert)}
-                  className="reveal beige-card rounded-3xl overflow-hidden cursor-pointer flex flex-col group relative transform transition-all duration-300 hover:-translate-y-1.5 border border-[#e8dfd5] hover:border-[#cbb497]"
-                  style={{ transitionDelay: `${Math.min(certIdx, 8) * 70}ms` }}
-                >
-                  {/* Thumbnail Banner */}
-                  <div className="relative h-44 w-full bg-[#f4ede3] overflow-hidden">
-                    <img
-                      src={cert.imageUrl || "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&q=80&w=800"}
-                      alt={t(cert.title)}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-stone-900/15 group-hover:bg-transparent transition-colors" />
-
-                    {/* Issuer Badge */}
-                    <div className="absolute top-3 left-3 rtl:left-auto rtl:right-3">
-                      <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white/95 backdrop-blur-md text-amber-950 border border-amber-300 shadow-md">
-                        {t(cert.issuer)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-xs text-stone-500 font-mono">
-                        <Calendar className="w-3.5 h-3.5 text-amber-800" />
-                        <span>{t(cert.issueDate)}</span>
-                      </div>
-
-                      <h4 className="text-sm font-bold text-stone-900 group-hover:text-amber-800 transition-colors line-clamp-2 judicial-heading leading-snug">
-                        {t(cert.title)}
-                      </h4>
-
-                      {cert.description && (
-                        <p className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
-                          {t(cert.description)}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Footer Trigger */}
-                    <div className="flex items-center justify-between pt-2 border-t border-[#e8dfd5] text-xs font-bold text-amber-900">
-                      <span className="flex items-center gap-1.5">
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>{lang === 'ar' ? 'فحص الاعتماد' : 'Inspect'}</span>
-                      </span>
-                      <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 5. SERVICES & PRODUCTION CAPABILITIES */}
-      {/* ============================================================ */}
-      <section id="practice-areas" className="py-24 border-b border-[#e8dfd5] bg-white/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="reveal text-center max-w-2xl mx-auto mb-16 space-y-3">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
-              <Layers className="w-4 h-4 text-amber-800" />
-              <span>{lang === 'ar' ? 'خدمات KMA المتكاملة' : 'Our Media Services'}</span>
-            </div>
-            <h3 className="text-2xl sm:text-4xl font-bold text-stone-900 tracking-tight judicial-heading">
-              {lang === 'ar' ? 'باقات وخدمات الإنتاج المرئي والتصوير' : 'Full-Spectrum Wedding & Media Services'}
-            </h3>
-            <p className="text-stone-600 text-xs sm:text-base">
-              {lang === 'ar'
-                ? 'حلول إعلامية وإنتاجية متكاملة تضمن خروج مناسبتكم بأبهى صورة سينمائية مع تسليمات سريعة وفائقة الجودة.'
-                : 'Complete visual production solutions ensuring your wedding or corporate event is captured with flawless artistry.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(data.practiceAreas || []).map((area, idx) => (
-              <div
-                key={idx}
-                className="reveal p-8 rounded-3xl bg-[#fdfbf8] border border-[#e8dfd5] hover:border-[#cbb497] transition-all shadow-sm space-y-4"
-                style={{ transitionDelay: `${idx * 100}ms` }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center font-bold text-sm">
-                    0{idx + 1}
-                  </div>
-                  <h4 className="text-lg font-bold text-stone-900 judicial-heading">
-                    {t(area.title)}
-                  </h4>
-                </div>
-
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  {t(area.description)}
-                </p>
-
-                <div className="pt-2">
-                  <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-2">
-                    {lang === 'ar' ? 'أبرز مميزات الخدمة' : 'Service Features'}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {area.items.map((item, i) => (
-                      <span
-                        key={i}
-                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-white border border-[#e4d8c7] text-stone-800 shadow-sm"
-                      >
-                        {t(item)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

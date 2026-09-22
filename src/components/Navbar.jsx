@@ -8,11 +8,11 @@ export const Navbar = () => {
   const [activeSection, setActiveSection] = useState('home');
 
   const navLinks = [
-    { label: lang === 'ar' ? 'عن KMA' : 'About KMA', href: '#about' },
-    { label: lang === 'ar' ? 'معرض الأعمال' : 'Portfolio', href: '#projects' },
-    { label: lang === 'ar' ? 'الاعتمادات والجوائز' : 'Accreditations', href: '#certificates' },
-    { label: lang === 'ar' ? 'خدماتنا' : 'Services', href: '#practice-areas' },
-    { label: lang === 'ar' ? 'حجز موعد' : 'Book Event', href: '#contact' },
+    { label: lang === 'ar' ? 'الرؤية والرسالة' : 'Vision & About', href: '#about' },
+    { label: lang === 'ar' ? 'أبرز الأرقام' : 'Highlights', href: '#stats' },
+    { label: lang === 'ar' ? 'شركاء وأماكن التصوير' : 'Venues & Partners', href: '#partners' },
+    { label: lang === 'ar' ? 'معرض الأفلام' : 'Films & Works', href: '#projects' },
+    { label: lang === 'ar' ? 'حجز موعد VIP' : 'VIP Booking', href: '#contact' },
   ];
 
   useEffect(() => {
