@@ -97,14 +97,14 @@ export const Navbar = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-lg sm:text-xl font-extrabold tracking-tight text-stone-900 group-hover:text-amber-800 transition-colors judicial-heading">
-                  KMA
+                  {t(data.profile?.shortName) || 'KMA'}
                 </span>
                 <span className="text-xs uppercase tracking-widest text-stone-500 font-light font-sans">
-                  wedding
+                  {t(data.profile?.brandSubtitle) || 'wedding'}
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 rounded-full border border-amber-300/80">
                   <Film className="w-3 h-3 text-amber-800" />
-                  <span>{lang === 'ar' ? 'إنتاج إعلامي وسينمائي' : 'Media & Cinema'}</span>
+                  <span>{lang === 'ar' ? 'إنتاج سينمائي' : 'Cinema & Media'}</span>
                 </span>
               </div>
               <p className="text-xs text-stone-500 truncate max-w-[190px] sm:max-w-[280px] font-medium">
@@ -136,21 +136,21 @@ export const Navbar = () => {
           ) : (
             <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#f4ece1] border border-[#e5dacb] text-xs text-stone-600 font-medium">
               <Camera className="w-4 h-4 text-amber-800" />
-              <span>{lang === 'ar' ? 'لوحة تحكم وتعديل بيانات KMA' : 'KMA Media Admin Mode'}</span>
+              <span>{lang === 'ar' ? `لوحة تحكم وتعديل ${t(data.profile?.shortName) || 'KMA'}` : `${t(data.profile?.shortName) || 'KMA'} Media Admin Mode`}</span>
             </div>
           )}
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2.5 shrink-0">
             {/* Language Switcher */}
-            {/* <button
+            <button
               onClick={toggleLanguage}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-white hover:bg-[#f6eee4] text-stone-800 border border-[#ded0bf] shadow-sm transition-all hover:border-amber-700"
               title={lang === 'ar' ? 'Switch to English' : 'التحويل للغة العربية'}
             >
               <Globe className="w-3.5 h-3.5 text-amber-800" />
-              <span className="font-mono uppercase">{lang === 'ar' ? 'English' : 'عربي'}</span>
-            </button> */}
+              <span className="font-semibold">{lang === 'ar' ? 'English' : 'عربي'}</span>
+            </button>
 
             {currentView === 'portfolio' ? (
               <button
@@ -208,6 +208,17 @@ export const Navbar = () => {
           )}
 
           <div className="pt-2 border-t border-[#e8dfd5] flex flex-col gap-2">
+            <button
+              onClick={() => {
+                toggleLanguage();
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-stone-800 bg-white hover:bg-[#f6eee4] rounded-xl border border-[#ded0bf] shadow-sm transition-all"
+            >
+              <Globe className="w-4 h-4 text-amber-800" />
+              <span>{lang === 'ar' ? 'Switch to English (EN)' : 'التحويل للغة العربية (عربي)'}</span>
+            </button>
+
             <button
               onClick={() => scrollToSection('#contact')}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold text-white bg-gradient-to-r from-amber-800 to-yellow-900 rounded-xl shadow-md"

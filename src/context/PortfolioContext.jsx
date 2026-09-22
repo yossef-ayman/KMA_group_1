@@ -3,7 +3,7 @@ import { DEFAULT_PORTFOLIO_DATA } from '../data/defaultData';
 import { THEME_PRESETS, BG_TONES } from '../data/themes';
 
 const STORAGE_KEY = 'kma_wedding_media_production_en_v6';
-const STORAGE_LANG_KEY = 'kma_wedding_lang_en_v4';
+const STORAGE_LANG_KEY = 'kma_wedding_lang_v8';
 const STORAGE_BOOKINGS_KEY = 'kma_wedding_bookings_v1';
 const STORAGE_THEME_KEY = 'kma_wedding_theme_v1';
 const STORAGE_BGTONE_KEY = 'kma_wedding_bgtone_v1';
@@ -23,14 +23,15 @@ export const PortfolioProvider = ({ children }) => {
         'awad_partners_lang_v1',
         'kma_wedding_media_data_v3',
         'kma_wedding_media_production_v5',
-        'kma_wedding_lang_v3'
+        'kma_wedding_lang_v3',
+        'kma_wedding_lang_en_v4'
       ].forEach(k => {
         localStorage.removeItem(k);
       });
     } catch (e) {}
   }
 
-  // Language state: defaults to 'en'
+  // Language state: defaults to Arabic ('ar')
   const [lang, setLang] = useState(() => {
     try {
       const savedLang = localStorage.getItem(STORAGE_LANG_KEY);
@@ -40,7 +41,7 @@ export const PortfolioProvider = ({ children }) => {
     } catch (e) {
       console.error(e);
     }
-    return 'en'; // Default to English
+    return 'ar'; // Default to Arabic for all visitors
   });
 
   // Admin Security & Passcode Gate
@@ -197,7 +198,7 @@ export const PortfolioProvider = ({ children }) => {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.profile?.shortName === 'KMA' && !JSON.stringify(parsed).includes('Awad')) {
+        if (parsed?.profile && parsed?.projects && !JSON.stringify(parsed).includes('Awad')) {
           return parsed;
         }
       }
@@ -435,6 +436,13 @@ export const PortfolioProvider = ({ children }) => {
     }
     return String(val);
   };
+
+  // Keep document.title synchronized with studio brand name and language
+  useEffect(() => {
+    const siteName = t(data?.profile?.fullName) || t(data?.profile?.shortName) || 'KMA Wedding';
+    const siteTagline = lang === 'ar' ? 'إنتاج سينمائي وتوثيق أفراح ملكية' : 'Premier Cinematography & Luxury Wedding Media';
+    document.title = `${siteName} • ${siteTagline}`;
+  }, [data?.profile?.fullName, data?.profile?.shortName, lang]);
 
   // Synchronize hash with view
   useEffect(() => {

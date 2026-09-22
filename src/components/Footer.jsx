@@ -26,7 +26,7 @@ export const Footer = () => {
             <div className="space-y-1">
               <div className="flex items-center justify-center md:justify-start rtl:md:justify-start gap-2">
                 <span className="text-lg font-bold text-stone-900 tracking-tight judicial-heading">
-                  KMA Wedding & Media Production
+                  {t(data.profile?.fullName) || 'KMA Wedding & Media Production'}
                 </span>
               </div>
               <div className="flex items-center justify-center md:justify-start rtl:md:justify-start gap-1.5 text-xs text-amber-900 font-medium">
@@ -38,7 +38,7 @@ export const Footer = () => {
                 </span>
               </div>
               <p className="text-xs text-stone-500 flex items-center justify-center md:justify-start">
-                <span>© {new Date().getFullYear()} KMA Wedding. All rights reserved.</span>
+                <span>© {new Date().getFullYear()} {t(data.profile?.shortName) || 'KMA'}. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</span>
               </p>
             </div>
           </div>

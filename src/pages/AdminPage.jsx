@@ -34,7 +34,8 @@ import {
   Lock,
   Unlock,
   Key,
-  Send
+  Send,
+  Globe
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { AdminMediaUpload } from '../components/AdminMediaUpload';
@@ -42,6 +43,9 @@ import { AdminMediaUpload } from '../components/AdminMediaUpload';
 export const AdminPage = () => {
   const {
     data,
+    lang,
+    toggleLanguage,
+    t,
     navigateTo,
     updateProfile,
     updateStats,
@@ -87,7 +91,7 @@ export const AdminPage = () => {
   const safeVal = (v) => {
     if (!v) return '';
     if (typeof v === 'string') return v;
-    if (typeof v === 'object') return v.en || v.ar || '';
+    if (typeof v === 'object') return v[lang] || v.ar || v.en || '';
     return String(v);
   };
 
@@ -164,6 +168,7 @@ export const AdminPage = () => {
   const [profileForm, setProfileForm] = useState({
     fullName: safeVal(data.profile.fullName),
     shortName: safeVal(data.profile.shortName),
+    brandSubtitle: safeVal(data.profile.brandSubtitle) || 'wedding',
     title: safeVal(data.profile.title),
     tagline: safeVal(data.profile.tagline),
     bio: safeVal(data.profile.bio),
@@ -198,6 +203,7 @@ export const AdminPage = () => {
     setProfileForm({
       fullName: safeVal(data.profile.fullName),
       shortName: safeVal(data.profile.shortName),
+      brandSubtitle: safeVal(data.profile.brandSubtitle) || 'wedding',
       title: safeVal(data.profile.title),
       tagline: safeVal(data.profile.tagline),
       bio: safeVal(data.profile.bio),
@@ -222,7 +228,7 @@ export const AdminPage = () => {
   }, [data.profile]);
 
   const handleSaveProfile = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     updateProfile({
       ...profileForm,
       stats: statsList
@@ -723,15 +729,15 @@ export const AdminPage = () => {
                 onClick={() => navigateTo('portfolio')}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#f6eee4] text-stone-700 hover:text-stone-950 border border-[#ded0bf] transition-colors text-xs font-bold shadow-sm"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Return to Public Showcase</span>
+                <ArrowLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+                <span>{lang === 'ar' ? 'الرجوع للموقع العام' : 'Return to Public Showcase'}</span>
               </button>
               <div className="h-4 w-px bg-[#dfd2c0] hidden sm:block" />
               <div>
                 <h1 className="text-lg font-bold text-stone-900 flex flex-wrap items-center gap-2 judicial-heading">
-                  <span>KMA Studio Management & Master Portal</span>
+                  <span>{lang === 'ar' ? `لوحة تحكم وإدارة ${t(data.profile?.shortName) || 'KMA'}` : `${t(data.profile?.shortName) || 'KMA'} Studio Management & Master Portal`}</span>
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
-                    Live Control
+                    {lang === 'ar' ? 'تحكم مباشر' : 'Live Control'}
                   </span>
                   <span
                     className={`text-[10px] font-mono px-2 py-0.5 rounded-md border flex items-center gap-1.5 transition-colors ${
@@ -758,35 +764,47 @@ export const AdminPage = () => {
                     />
                     <span>
                       {backendStatus === 'connected'
-                        ? 'Cloud Backend Active'
+                        ? (lang === 'ar' ? 'السيرفر السحابي متصل' : 'Cloud Backend Active')
                         : backendStatus === 'offline'
-                        ? 'Local Mode'
-                        : 'Connecting...'}
+                        ? (lang === 'ar' ? 'وضع الحفظ المحلي' : 'Local Mode')
+                        : (lang === 'ar' ? 'جاري الاتصال...' : 'Connecting...')}
                     </span>
                   </span>
                 </h1>
                 <p className="text-xs text-stone-500 font-medium">
-                  Custom color themes, media uploads, packages, milestones, and client inquiries
+                  {lang === 'ar'
+                    ? 'تعديل اسم وهوية الموقع، إضاءة وألوان الشاشة، رفع الفيديوهات، وإدارة طلبات الحجز'
+                    : 'Custom color themes, studio branding, media uploads, packages, milestones, and client inquiries'}
                 </p>
               </div>
             </div>
 
             {/* Quick Actions & Security Lock */}
             <div className="flex items-center gap-2">
+              {/* Language Switcher */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#f6eee4] text-stone-800 border border-[#ded0bf] transition-colors text-xs font-bold shadow-sm hover:border-amber-700"
+                title={lang === 'ar' ? 'Switch to English' : 'التحويل للغة العربية'}
+              >
+                <Globe className="w-3.5 h-3.5 text-amber-800" />
+                <span>{lang === 'ar' ? 'English' : 'عربي'}</span>
+              </button>
+
               <button
                 onClick={exportDataJSON}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#f6eee4] text-stone-700 hover:text-stone-900 border border-[#ded0bf] transition-colors text-xs font-semibold shadow-sm"
                 title="Download full JSON backup"
               >
                 <Download className="w-3.5 h-3.5 text-amber-800" />
-                <span>Export JSON</span>
+                <span className="hidden sm:inline">{lang === 'ar' ? 'نسخ احتياطي' : 'Export JSON'}</span>
               </button>
               <button
                 onClick={() => navigateTo('portfolio')}
                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white transition-colors text-xs font-bold shadow-sm"
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>View Live Site</span>
+                <span>{lang === 'ar' ? 'معاينة الموقع' : 'View Live Site'}</span>
               </button>
               <button
                 onClick={logoutAdmin}
@@ -794,7 +812,7 @@ export const AdminPage = () => {
                 title="Lock Dashboard Session"
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Lock</span>
+                <span className="hidden sm:inline">{lang === 'ar' ? 'قفل' : 'Lock'}</span>
               </button>
             </div>
           </div>
@@ -808,8 +826,8 @@ export const AdminPage = () => {
               }`}
             >
               <div>
-                <span className="text-[10px] font-bold uppercase text-stone-500 block">أعمال المعرض</span>
-                <span className="text-sm font-bold text-stone-900 font-serif">{data.projects.length} أفلام وإنتاجات</span>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">{lang === 'ar' ? 'أعمال المعرض' : 'Portfolio Films'}</span>
+                <span className="text-sm font-bold text-stone-900 font-serif">{data.projects.length} {lang === 'ar' ? 'أفلام وإنتاجات' : 'Productions'}</span>
               </div>
               <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
                 <Briefcase className="w-4 h-4" />
@@ -823,8 +841,8 @@ export const AdminPage = () => {
               }`}
             >
               <div>
-                <span className="text-[10px] font-bold uppercase text-stone-500 block">طلبات الحجز</span>
-                <span className="text-sm font-bold text-stone-900 font-serif">{(bookings || []).length} استفسار</span>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">{lang === 'ar' ? 'طلبات الحجز' : 'Client Inquiries'}</span>
+                <span className="text-sm font-bold text-stone-900 font-serif">{(bookings || []).length} {lang === 'ar' ? 'استفسار' : 'Bookings'}</span>
               </div>
               <div className="relative w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center">
                 <Inbox className="w-4 h-4" />
@@ -841,9 +859,9 @@ export const AdminPage = () => {
               }`}
             >
               <div>
-                <span className="text-[10px] font-bold uppercase text-stone-500 block">إضاءة الشاشة</span>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">{lang === 'ar' ? 'إضاءة الشاشة' : 'Screen Canvas'}</span>
                 <span className="text-sm font-bold text-stone-900 font-serif">
-                  {bgTone === 'white' ? 'أبيض ناصع 🌟' : bgTone === 'dark' ? 'سينمائي 🖤' : 'بيج كلاسيك 📜'}
+                  {bgTone === 'white' ? (lang === 'ar' ? 'أبيض ناصع 🌟' : 'Pure White') : bgTone === 'dark' ? (lang === 'ar' ? 'سينمائي 🖤' : 'Cinema Dark') : (lang === 'ar' ? 'بيج كلاسيك 📜' : 'Beige Canvas')}
                 </span>
               </div>
               <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
@@ -858,13 +876,13 @@ export const AdminPage = () => {
               }`}
             >
               <div>
-                <span className="text-[10px] font-bold uppercase text-stone-500 block">إشعارات الإيميل</span>
-                <span className="text-sm font-bold text-stone-900 font-serif">
-                  {profileForm.web3formsKey ? 'مفعل مجاناً ✅' : 'يحتاج مفتاح ⚠️'}
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">{lang === 'ar' ? 'اسم الموقع والإيميل' : 'Site Name & Email'}</span>
+                <span className="text-sm font-bold text-stone-900 font-serif truncate max-w-[140px] block">
+                  {profileForm.shortName || 'KMA'}
                 </span>
               </div>
               <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center">
-                <Mail className="w-4 h-4" />
+                <User className="w-4 h-4" />
               </div>
             </div>
           </div>
@@ -881,7 +899,7 @@ export const AdminPage = () => {
               }`}
             >
               <Briefcase className="w-4 h-4" />
-              <span>Films & Portfolio</span>
+              <span>{lang === 'ar' ? 'معرض الأفلام والأعمال' : 'Films & Portfolio'}</span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                 activeTab === 'projects' ? 'bg-white text-amber-950' : 'bg-amber-100 text-amber-900'
               }`}>
@@ -899,7 +917,7 @@ export const AdminPage = () => {
               }`}
             >
               <Inbox className="w-4 h-4" />
-              <span>Client Inquiries</span>
+              <span>{lang === 'ar' ? 'طلبات الحجز والعملاء' : 'Client Inquiries'}</span>
               <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                 (bookings || []).length > 0
                   ? activeTab === 'bookings' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white animate-pulse'
@@ -909,7 +927,7 @@ export const AdminPage = () => {
               </span>
             </button>
 
-            {/* VIP Tab 3: Studio & Profile */}
+            {/* VIP Tab 3: Studio & Profile (Where Site Name is customized) */}
             <button
               onClick={() => setActiveTab('profile')}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
@@ -919,7 +937,7 @@ export const AdminPage = () => {
               }`}
             >
               <User className="w-4 h-4" />
-              <span>Studio, Vision & Stats</span>
+              <span>{lang === 'ar' ? 'اسم وهوية الموقع' : 'Website & Brand'}</span>
             </button>
 
             {/* VIP Tab 4: Theme & Colors */}
@@ -932,7 +950,7 @@ export const AdminPage = () => {
               }`}
             >
               <Palette className="w-4 h-4" />
-              <span>Theme & Lighting</span>
+              <span>{lang === 'ar' ? 'إضاءة وثيم الشاشة' : 'Theme & Lighting'}</span>
               <span className={`w-2.5 h-2.5 rounded-full ${activeTab === 'theme' ? 'bg-amber-300' : 'bg-amber-600'}`} />
             </button>
 
@@ -946,7 +964,7 @@ export const AdminPage = () => {
               }`}
             >
               <Clock className="w-4 h-4" />
-              <span>Venues & Legacy</span>
+              <span>{lang === 'ar' ? 'الأماكن والشركاء' : 'Venues & Legacy'}</span>
             </button>
 
             {/* VIP Tab 6: Backup & Restore */}
@@ -959,7 +977,7 @@ export const AdminPage = () => {
               }`}
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Backup & Security</span>
+              <span>{lang === 'ar' ? 'النسخ والأمان' : 'Backup & Security'}</span>
             </button>
 
             {/* Extra Tab: Gear & Tech */}
@@ -972,7 +990,7 @@ export const AdminPage = () => {
               }`}
             >
               <Layers className="w-4 h-4" />
-              <span>Gear & Tech</span>
+              <span>{lang === 'ar' ? 'الكاميرات والمعدات' : 'Gear & Tech'}</span>
             </button>
 
             {/* Tab 8: Event Bookings */}
@@ -1202,12 +1220,120 @@ export const AdminPage = () => {
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900 mb-1">
                 <User className="w-4 h-4 text-amber-800" />
-                <span>Brand Identity</span>
+                <span>{lang === 'ar' ? 'هوية واسم الموقع' : 'Brand Identity'}</span>
               </div>
-              <h2 className="text-xl font-bold text-stone-900 font-serif">KMA Profile & Studio Brand</h2>
+              <h2 className="text-xl font-bold text-stone-900 font-serif">
+                {lang === 'ar' ? `بيانات واسم موقع ${t(data.profile?.shortName) || 'KMA'}` : `${t(data.profile?.shortName) || 'KMA'} Profile & Studio Brand`}
+              </h2>
               <p className="text-xs text-stone-500 mt-1">
-                Manage your studio name, official logo, company description, contact numbers, email alerts, and public stats.
+                {lang === 'ar'
+                  ? 'يمكنك من هنا تغيير اسم الموقع بالكامل، اللوجو، نبذة الاستوديو، الرؤية والرسالة، وأرقام التواصل.'
+                  : 'Manage your studio name, official logo, company description, contact numbers, email alerts, and public stats.'}
               </p>
+            </div>
+
+            {/* VIP Card: Website & Brand Name Customizer */}
+            <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-[#faf7f2] to-white border-2 border-amber-500/40 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e8dfd5]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-800 to-yellow-900 text-white flex items-center justify-center shadow-md shrink-0">
+                    <Sparkles className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-stone-900 font-serif">
+                      {lang === 'ar' ? 'تعديل اسم الويب سايت والبراند بالكامل' : 'Website Brand & Studio Name Customizer'}
+                    </h3>
+                    <p className="text-xs text-stone-500">
+                      {lang === 'ar'
+                        ? 'تغيير الاسم هنا سيحدث فورياً في شريط التنقل العلوي، الفوتر، عنوان المتصفح، والرسائل.'
+                        : 'Customizing your brand name here updates dynamically across header, footer, browser title, and messages.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSaveProfile}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 text-white text-xs font-bold shadow-md transition-all shrink-0"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{lang === 'ar' ? 'حفظ اسم الموقع' : 'Save Brand Name'}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Short Name */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-900 uppercase tracking-wider mb-1.5">
+                    {lang === 'ar' ? 'اسم الموقع المختصر (Short Name) *' : 'Studio Short Name *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.shortName}
+                    onChange={(e) => setProfileForm({ ...profileForm, shortName: e.target.value })}
+                    placeholder="مثال: KMA أو الاسم الجديد"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-amber-400 text-sm font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-xs"
+                  />
+                  <p className="text-[10px] text-stone-500 mt-1">
+                    {lang === 'ar' ? 'يظهر باللوجو وشريط التنقل العلوي' : 'Displayed in top navbar & logo'}
+                  </p>
+                </div>
+
+                {/* Brand Tagline */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-900 uppercase tracking-wider mb-1.5">
+                    {lang === 'ar' ? 'الكلمة المرافقة للاسم' : 'Brand Tagline / Word'}
+                  </label>
+                  <input
+                    type="text"
+                    value={profileForm.brandSubtitle}
+                    onChange={(e) => setProfileForm({ ...profileForm, brandSubtitle: e.target.value })}
+                    placeholder="مثال: wedding أو سينما"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#ded0bf] text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-xs"
+                  />
+                  <p className="text-[10px] text-stone-500 mt-1">
+                    {lang === 'ar' ? 'الكلمة الصغيرة بجانب اللوجو (مثل wedding)' : 'Small uppercase tagline next to name'}
+                  </p>
+                </div>
+
+                {/* Full Name */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-900 uppercase tracking-wider mb-1.5">
+                    {lang === 'ar' ? 'اسم الموقع / الشركة بالكامل *' : 'Company Full Name *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={profileForm.fullName}
+                    onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
+                    placeholder="مثال: KMA Wedding & Media Production"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#ded0bf] text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40 shadow-xs"
+                  />
+                  <p className="text-[10px] text-stone-500 mt-1">
+                    {lang === 'ar' ? 'يظهر في عنوان المتصفح والفوتر' : 'Displayed in browser tab & footer'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Instant Live Visual Preview */}
+              <div className="p-3.5 rounded-xl bg-white/95 border border-[#e8dfd5] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs text-stone-600">
+                  <Eye className="w-4 h-4 text-amber-800 shrink-0" />
+                  <span className="font-semibold">{lang === 'ar' ? 'معاينة مباشرة لشكل الاسم في الهيدر والفوتر:' : 'Live Brand Preview:'}</span>
+                </div>
+                <div className="flex items-baseline gap-2 px-3 py-1.5 rounded-lg bg-[#faf7f2] border border-[#ded0bf]">
+                  <span className="text-base font-extrabold tracking-tight text-stone-900 font-serif">
+                    {profileForm.shortName || 'KMA'}
+                  </span>
+                  <span className="text-[11px] uppercase tracking-widest text-stone-500 font-light font-sans">
+                    {profileForm.brandSubtitle || 'wedding'}
+                  </span>
+                  <span className="text-[10px] text-stone-400 font-mono">
+                    • {profileForm.fullName || 'Studio Full Name'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Logo Media Upload Component */}

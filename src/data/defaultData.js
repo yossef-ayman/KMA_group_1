@@ -2,10 +2,23 @@ export const DEFAULT_PORTFOLIO_DATA = {
   profile: {
     fullName: "KMA Media & Wedding Production",
     shortName: "KMA",
-    title: "Premier Cinematography & Luxury Wedding Media Production",
-    tagline: "Capturing your timeless moments and premier events with high-end digital cinema and visual artistry.",
-    bio: "KMA is a premier media production company specializing in luxury wedding cinematography, visual storytelling, and major corporate event coverage. Equipped with high-end cinema cameras, optical lenses, and licensed aerial drones, our team of directors and cinematographers craft cinematic experiences that last forever.",
-    location: "Cairo, Egypt • Available for Destination Weddings & Worldwide Travel",
+    brandSubtitle: "wedding",
+    title: {
+      ar: "توثيق سينمائي فاخر وإنتاج إعلامي لأرقى حفلات الزفاف",
+      en: "Premier Cinematography & Luxury Wedding Media Production"
+    },
+    tagline: {
+      ar: "نخلد أسعد لحظاتكم بأحدث تقنيات السينما الرقمية وأدق تفاصيل الفن المرئي.",
+      en: "Capturing your timeless moments and premier events with high-end digital cinema and visual artistry."
+    },
+    bio: {
+      ar: "شركة إنتاج مرئي وسينمائي رائدة متخصصة في توثيق حفلات الزفاف الفاخرة، السرد القصصي السينمائي، والمناسبات الكبرى. فريقنا مجهز بأحدث كاميرات السينما وعدسات Prime وطائرات الدرونز الجوية المرخصة لصناعة أعمال سينمائية استثنائية تدوم للأبد.",
+      en: "KMA is a premier media production company specializing in luxury wedding cinematography, visual storytelling, and major corporate event coverage. Equipped with high-end cinema cameras, optical lenses, and licensed aerial drones, our team of directors and cinematographers craft cinematic experiences that last forever."
+    },
+    location: {
+      ar: "القاهرة، مصر • متاحون لتغطية حفلات الزفاف بكافة المحافظات وحول العالم",
+      en: "Cairo, Egypt • Available for Destination Weddings & Worldwide Travel"
+    },
     email: "contact@kmawedding.com",
     phone: "+20 100 000 0000",
     phoneSecondary: "+20 120 000 0000",
@@ -19,28 +32,34 @@ export const DEFAULT_PORTFOLIO_DATA = {
       youtube: "https://youtube.com/@kmawedding",
       tiktok: "https://tiktok.com/@kmawedding"
     },
-    vision: "To immortalize your once-in-a-lifetime celebrations into timeless cinema films that evoke deep emotions for generations.",
-    mission: "Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence for every couple.",
+    vision: {
+      ar: "تخليد مناسباتكم الفريدة في أفلام سينمائية استثنائية تبقى حية في الوجدان والذاكرة عبر الأجيال.",
+      en: "To immortalize your once-in-a-lifetime celebrations into timeless cinema films that evoke deep emotions for generations."
+    },
+    mission: {
+      ar: "الدمج بين أحدث تقنيات تصوير 4K/6K، الإضاءة الفنية الدرامية، والتوثيق الوثائقي العفوي لتقديم تحفة بصرية لا تُضاهى لكل عروسين.",
+      en: "Blending state-of-the-art 4K cinema optics, artistic lighting, and candid documentary storytelling to deliver unmatched visual excellence for every couple."
+    },
     stats: [
       {
         value: "+35",
-        label: "Wedding & Media Films",
-        desc: "Featured cinema productions & highlights"
+        label: { ar: "أفلام سينمائية ومناسبات", en: "Wedding & Media Films" },
+        desc: { ar: "إنتاجات وأفلام سينمائية متكاملة", en: "Featured cinema productions & highlights" }
       },
       {
         value: "+6",
-        label: "Years of Filmmaking",
-        desc: "Specialized in luxury wedding cinema since 2018"
+        label: { ar: "سنوات من الاحتراف", en: "Years of Filmmaking" },
+        desc: { ar: "متخصصون في سينما الأعراس الفاخرة منذ 2018", en: "Specialized in luxury wedding cinema since 2018" }
       },
       {
         value: "6",
-        label: "Premier Luxury Venues",
-        desc: "Four Seasons, Mena House, Ritz-Carlton & more"
+        label: { ar: "أماكن وفنادق عالمية", en: "Premier Luxury Venues" },
+        desc: { ar: "فور سيزونز، مينا هاوس، ريتز كارلتون وغيرها", en: "Four Seasons, Mena House, Ritz-Carlton & more" }
       },
       {
         value: "100%",
-        label: "5-Star Client Rating",
-        desc: "Tailored delivery for distinguished couples"
+        label: { ar: "تقييم أزواجنا ومشاهيرنا", en: "5-Star Client Rating" },
+        desc: { ar: "تنفيذ دقيق وخدمة VIP استثنائية", en: "Tailored delivery for distinguished couples" }
       }
     ]
   },
@@ -273,8 +292,14 @@ export const DEFAULT_PORTFOLIO_DATA = {
   milestones: [
     {
       year: "2018 - Present",
-      title: "The KMA Filmmaking Heritage & Creative Journey",
-      description: "Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across Egypt's most prestigious venues."
+      title: {
+        ar: "مسيرة وفريق تصوير سينمائي متكامل للإنتاج الفاخر",
+        en: "The Filmmaking Heritage & Creative Journey"
+      },
+      description: {
+        ar: "أكثر من 6 سنوات من توثيق أفراح ملكية وأفلام سينمائية خالدة، وتوثيق أروع الاحتفالات في أرقى قصور وفنادق مصر والوطن العربي.",
+        en: "Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across Egypt's most prestigious venues."
+      }
     }
   ],
 

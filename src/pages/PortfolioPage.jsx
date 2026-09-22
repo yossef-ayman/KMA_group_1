@@ -113,7 +113,7 @@ export const PortfolioPage = () => {
       showToast(
         lang === 'ar'
           ? `ألف مبروك يا ${contactForm.name}! تم استلام طلب الحجز وإرسال إشعار فوري للإيميل.`
-          : `Thank you, ${contactForm.name}! Your booking request was recorded and emailed to KMA management!`,
+          : `Thank you, ${contactForm.name}! Your booking request was recorded and emailed to ${t(data.profile?.shortName) || 'KMA'} management!`,
         'success'
       );
     } else {
@@ -227,8 +227,8 @@ export const PortfolioPage = () => {
                 <Sparkles className="w-3.5 h-3.5 text-amber-800 shrink-0" />
                 <span>
                   {lang === 'ar'
-                    ? 'KMA Wedding & Media Production • رواد التصوير السينمائي'
-                    : 'KMA Wedding & Media Production • Premier Cinematography'}
+                    ? `${t(data.profile?.fullName) || 'KMA Wedding & Media Production'} • رواد التصوير السينمائي`
+                    : `${t(data.profile?.fullName) || 'KMA Wedding & Media Production'} • Premier Cinematography`}
                 </span>
               </div>
 
@@ -236,10 +236,10 @@ export const PortfolioPage = () => {
               <div className="space-y-3">
                 <div className="flex items-baseline justify-center lg:justify-start rtl:lg:justify-start gap-2.5">
                   <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-stone-900 judicial-heading">
-                    <span className="gradient-gold">KMA</span>
+                    <span className="gradient-gold">{t(data.profile?.shortName) || 'KMA'}</span>
                   </h1>
                   <span className="text-lg sm:text-2xl uppercase tracking-widest text-stone-500 font-light">
-                    wedding
+                    {t(data.profile?.brandSubtitle) || 'wedding'}
                   </span>
                 </div>
                 <h2 className="text-lg sm:text-2xl font-bold text-stone-800 leading-snug">
@@ -300,8 +300,8 @@ export const PortfolioPage = () => {
             </div>
             <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
               {lang === 'ar'
-                ? 'فلسفة KMA في توثيق أروع لحظات العمر'
-                : 'Crafting Visual Legacies That Transcend Time'}
+                ? `فلسفة ${t(data.profile?.shortName) || 'KMA'} في توثيق أروع لحظات العمر`
+                : `Crafting Visual Legacies with ${t(data.profile?.shortName) || 'KMA'}`}
             </h3>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
               {t(data.profile?.bio)}
@@ -399,7 +399,7 @@ export const PortfolioPage = () => {
             <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
                 <Clock className="w-4 h-4 text-amber-800" />
-                <span>{lang === 'ar' ? 'رحلة KMA الإبداعية' : 'The Creative Legacy'}</span>
+                <span>{lang === 'ar' ? `رحلة ${t(data.profile?.shortName) || 'KMA'} الإبداعية` : `The ${t(data.profile?.shortName) || 'KMA'} Creative Legacy`}</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 judicial-heading">
                 {lang === 'ar' ? 'سنوات من الريادة في عالم التصوير السينمائي' : 'Our Creative Journey & Heritage'}
@@ -412,7 +412,7 @@ export const PortfolioPage = () => {
               </div>
               <div className="space-y-1.5">
                 <h4 className="text-base sm:text-lg font-bold text-stone-900 judicial-heading">
-                  {(data.milestones && t(data.milestones[0]?.title)) || (lang === 'ar' ? 'تاريخ حافل بتوثيق أروع الأعراس الملكية' : 'The KMA Filmmaking Heritage & Creative Journey')}
+                  {(data.milestones && t(data.milestones[0]?.title)) || (lang === 'ar' ? 'تاريخ حافل بتوثيق أروع الأعراس الملكية' : `The ${t(data.profile?.shortName) || 'KMA'} Filmmaking Heritage`)}
                 </h4>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
                   {(data.milestones && t(data.milestones[0]?.description)) ||
@@ -485,8 +485,8 @@ export const PortfolioPage = () => {
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
                 {lang === 'ar'
-                  ? 'أحدث أعمال وأفلام KMA السينمائية'
-                  : 'Featured Films & Visual Highlights'}
+                  ? `أحدث أعمال وأفلام ${t(data.profile?.shortName) || 'KMA'} السينمائية`
+                  : `${t(data.profile?.shortName) || 'KMA'} Featured Films & Highlights`}
               </h3>
               <p className="text-stone-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                 {lang === 'ar'
@@ -648,10 +648,10 @@ export const PortfolioPage = () => {
             <div className="reveal lg:col-span-5 space-y-6">
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
                 <Heart className="w-4 h-4 text-amber-800 fill-amber-800" />
-                <span>{lang === 'ar' ? 'تواصل مع فريق KMA' : 'Connect with KMA'}</span>
+                <span>{lang === 'ar' ? `تواصل مع فريق ${t(data.profile?.shortName) || 'KMA'}` : `Connect with ${t(data.profile?.shortName) || 'KMA'}`}</span>
               </div>
               <h3 className="text-2xl sm:text-4xl font-bold text-stone-900 tracking-tight judicial-heading">
-                {lang === 'ar' ? 'احجز موعد حفل زفافك أو فعاليتك الآن' : 'Reserve Your Date with KMA'}
+                {lang === 'ar' ? `احجز موعد حفل زفافك مع ${t(data.profile?.shortName) || 'KMA'} الآن` : `Reserve Your Date with ${t(data.profile?.shortName) || 'KMA'}`}
               </h3>
               <p className="text-stone-600 text-xs sm:text-base leading-relaxed">
                 {lang === 'ar'
@@ -727,7 +727,9 @@ export const PortfolioPage = () => {
                     </div>
                     <a
                       href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                        'Hello KMA Wedding & Media Production, I would like to inquire about booking your cinematic team for an upcoming event.'
+                        lang === 'ar'
+                          ? `مرحباً فريق ${t(data.profile?.fullName) || 'KMA Wedding'}، أود الاستفسار عن حجز وتغطية موعد مناسبة قادمة.`
+                          : `Hello ${t(data.profile?.fullName) || 'KMA Wedding'}, I would like to inquire about booking your cinematic team for an upcoming event.`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -881,13 +883,15 @@ export const PortfolioPage = () => {
                         </div>
                         <p className="text-[11px] text-emerald-800 leading-relaxed">
                           {lang === 'ar'
-                            ? 'يمكنك أيضاً إرسال نسخة فورية ومباشرة من تفاصيل حجزك عبر الواتساب لتأكيد موعدك أسرع مع فريق KMA.'
-                            : 'You can also send a direct instant copy via WhatsApp to confirm availability immediately with KMA.'}
+                            ? `يمكنك أيضاً إرسال نسخة فورية ومباشرة من تفاصيل حجزك عبر الواتساب لتأكيد موعدك أسرع مع فريق ${t(data.profile?.shortName) || 'KMA'}.`
+                            : `You can also send a direct instant copy via WhatsApp to confirm availability immediately with ${t(data.profile?.shortName) || 'KMA'}.`}
                         </p>
                         {data.profile?.phone && (
                           <a
                             href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                              `Hello KMA Production! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
+                              lang === 'ar'
+                                ? `مرحباً فريق ${t(data.profile?.shortName) || 'KMA'}! قمت للتو بتقديم طلب حجز مناسبة (${lastBookingSubmitted.eventType || 'حفل زفاف'}) لتاريخ ${lastBookingSubmitted.eventDate || 'قريباً'} في ${lastBookingSubmitted.location || 'القاهرة'}. الاسم: ${lastBookingSubmitted.name}.`
+                                : `Hello ${t(data.profile?.shortName) || 'KMA'} Team! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
