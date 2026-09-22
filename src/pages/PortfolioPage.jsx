@@ -295,7 +295,7 @@ export const PortfolioPage = () => {
           {/* Dual Luxury Cards: Vision & Mission */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Vision Card */}
-            <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+            {/* <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
               <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 border border-amber-300 flex items-center justify-center font-bold shadow-sm">
                 <Sparkles className="w-6 h-6 text-amber-800" />
               </div>
@@ -308,10 +308,10 @@ export const PortfolioPage = () => {
               <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-900 font-bold uppercase tracking-wider">
                 <span>✦ Timeless Visual Storytelling</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Mission Card */}
-            <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
+            {/* <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group">
               <div className="w-12 h-12 rounded-2xl bg-[#efe6d8] text-amber-950 border border-[#dfd2c0] flex items-center justify-center font-bold shadow-sm">
                 <Camera className="w-6 h-6 text-amber-800" />
               </div>
@@ -324,7 +324,7 @@ export const PortfolioPage = () => {
               <div className="pt-2 flex items-center gap-2 text-[11px] text-amber-900 font-bold uppercase tracking-wider">
                 <span>✦ 4K/6K Cinema Standard</span>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
