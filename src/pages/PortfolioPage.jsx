@@ -212,12 +212,6 @@ export const PortfolioPage = () => {
 
             {/* Headline & Action Column: Renders SECOND on mobile (order-2), left column on desktop (lg:order-1) */}
             <div className="order-2 lg:order-1 lg:col-span-7 space-y-6 text-center lg:text-left">
-              {/* Trust Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f4ece1] border border-[#dfd2c0] text-amber-950 text-xs font-bold shadow-sm">
-                <Sparkles className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-                <span>{`${t(data.profile?.fullName) || 'KMA Wedding & Media Production'} • Premier Cinematography`}</span>
-              </div>
-
               {/* Title & Headline */}
               <div className="space-y-3">
                 <div className="flex items-baseline justify-center lg:justify-start gap-2.5">
