@@ -60,7 +60,33 @@ export const PortfolioProvider = ({ children }) => {
     }
   });
 
-  const loginAdmin = (inputPasscode) => {
+  // Backend Connectivity Status: 'connecting' | 'connected' | 'offline'
+  const [backendStatus, setBackendStatus] = useState('connecting');
+
+  const loginAdmin = async (inputPasscode) => {
+    // Attempt backend verification first
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: inputPasscode })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.authenticated) {
+          setIsAdminAuthenticated(true);
+          try {
+            sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
+          } catch (e) {}
+          showToast(lang === 'ar' ? 'تم تسجيل الدخول للوحة الإدارة بنجاح' : 'Admin session authenticated successfully!');
+          return true;
+        }
+      }
+    } catch (e) {
+      // API offline fallback
+    }
+
+    // Local passcode fallback check
     if (inputPasscode === adminPasscode) {
       setIsAdminAuthenticated(true);
       try {
@@ -81,14 +107,20 @@ export const PortfolioProvider = ({ children }) => {
     showToast(lang === 'ar' ? 'تم تسجيل الخروج' : 'Admin session ended.', 'info');
   };
 
-  const updateAdminPasscode = (newCode) => {
+  const updateAdminPasscode = async (newCode) => {
     if (!newCode || newCode.length < 4) {
       showToast(lang === 'ar' ? 'الرمز يجب أن يكون 4 خانات على الأقل' : 'Passcode must be at least 4 characters.', 'error');
       return false;
     }
+    const prevCode = adminPasscode;
     setAdminPasscode(newCode);
     try {
       localStorage.setItem(STORAGE_PASSCODE_KEY, newCode);
+      await fetch('/api/auth/change-passcode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPasscode: prevCode, newPasscode: newCode })
+      });
     } catch (e) {}
     showToast(lang === 'ar' ? 'تم تحديث الرقم السري بنجاح' : 'Admin passcode updated successfully!');
     return true;
@@ -222,7 +254,7 @@ export const PortfolioProvider = ({ children }) => {
     }
   }, [bookings]);
 
-  const addBooking = (bookingData) => {
+  const addBooking = async (bookingData) => {
     const newBooking = {
       ...bookingData,
       id: `book-${Date.now()}`,
@@ -230,17 +262,38 @@ export const PortfolioProvider = ({ children }) => {
       status: 'new'
     };
     setBookings((prev) => [newBooking, ...prev]);
+
+    // Send to backend API
+    try {
+      await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBooking)
+      });
+    } catch (e) {
+      // Graceful offline fallback
+    }
     return newBooking;
   };
 
-  const deleteBooking = (id) => {
+  const deleteBooking = async (id) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
+    try {
+      await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+    } catch (e) {}
   };
 
-  const updateBookingStatus = (id, newStatus) => {
+  const updateBookingStatus = async (id, newStatus) => {
     setBookings((prev) =>
       prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
     );
+    try {
+      await fetch(`/api/bookings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {}
   };
 
   // Dispatch live email to KMA inbox via free Web3Forms API
@@ -414,13 +467,83 @@ export const PortfolioProvider = ({ children }) => {
     }, 3800);
   };
 
-  // Save to localStorage whenever data changes
+  // Initial Backend Synchronization on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const initBackend = async () => {
+      try {
+        const healthRes = await fetch('/api/health');
+        if (!healthRes.ok) throw new Error('API offline');
+        if (isMounted) setBackendStatus('connected');
+
+        // Load data from backend
+        const dataRes = await fetch('/api/data');
+        if (dataRes.ok) {
+          const resJson = await dataRes.json();
+          if (resJson.success && resJson.data && resJson.data.profile) {
+            if (isMounted) {
+              setData(resJson.data);
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(resJson.data));
+              } catch (e) {}
+            }
+          } else {
+            // First run on fresh backend: seed with current frontend data
+            await fetch('/api/data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+          }
+        }
+
+        // Load bookings from backend
+        const bookRes = await fetch('/api/bookings');
+        if (bookRes.ok) {
+          const bookJson = await bookRes.json();
+          if (bookJson.success && Array.isArray(bookJson.bookings) && bookJson.bookings.length > 0) {
+            if (isMounted) {
+              setBookings(bookJson.bookings);
+              try {
+                localStorage.setItem(STORAGE_BOOKINGS_KEY, JSON.stringify(bookJson.bookings));
+              } catch (e) {}
+            }
+          }
+        }
+      } catch (err) {
+        if (isMounted) setBackendStatus('offline');
+      }
+    };
+
+    initBackend();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Save to localStorage & debounced sync to backend API whenever data changes
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       console.error('Failed to save to localStorage', e);
     }
+
+    const syncTimer = setTimeout(async () => {
+      try {
+        await fetch('/api/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        // Silently keep local fallback
+      }
+    }, 1200);
+
+    return () => clearTimeout(syncTimer);
   }, [data]);
 
   // Profile methods
@@ -664,7 +787,8 @@ export const PortfolioProvider = ({ children }) => {
         bgTone,
         setBackgroundTone,
         BG_TONES,
-        // Admin Security
+        // Admin Security & Backend Status
+        backendStatus,
         adminPasscode,
         isAdminAuthenticated,
         loginAdmin,

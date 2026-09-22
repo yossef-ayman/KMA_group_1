@@ -76,6 +76,7 @@ export const AdminPage = () => {
     BG_TONES,
     adminPasscode,
     isAdminAuthenticated,
+    backendStatus,
     loginAdmin,
     logoutAdmin,
     updateAdminPasscode,
@@ -622,10 +623,41 @@ export const AdminPage = () => {
               </button>
               <div className="h-4 w-px bg-[#dfd2c0] hidden sm:block" />
               <div>
-                <h1 className="text-lg font-bold text-stone-900 flex items-center gap-2 judicial-heading">
+                <h1 className="text-lg font-bold text-stone-900 flex flex-wrap items-center gap-2 judicial-heading">
                   <span>KMA Studio Management & Master Portal</span>
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
                     Live Control
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded-md border flex items-center gap-1.5 transition-colors ${
+                      backendStatus === 'connected'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : backendStatus === 'offline'
+                        ? 'bg-stone-100 text-stone-600 border-stone-300'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                    title={
+                      backendStatus === 'connected'
+                        ? 'Cloud API server is connected and synchronizing.'
+                        : 'Operating in local offline storage mode.'
+                    }
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        backendStatus === 'connected'
+                          ? 'bg-emerald-500 animate-pulse'
+                          : backendStatus === 'offline'
+                          ? 'bg-stone-400'
+                          : 'bg-amber-400 animate-ping'
+                      }`}
+                    />
+                    <span>
+                      {backendStatus === 'connected'
+                        ? 'Cloud Backend Active'
+                        : backendStatus === 'offline'
+                        ? 'Local Mode'
+                        : 'Connecting...'}
+                    </span>
                   </span>
                 </h1>
                 <p className="text-xs text-stone-500 font-medium">
