@@ -33,7 +33,8 @@ export const PortfolioPage = () => {
     refreshCertificates,
     addBooking,
     sendBookingEmail,
-    showToast
+    showToast,
+    isAdminAuthenticated
   } = usePortfolio();
 
   const [lastBookingSubmitted, setLastBookingSubmitted] = useState(null);
@@ -862,172 +863,245 @@ export const PortfolioPage = () => {
               </div>
             </div>
 
-            {/* Interactive Wedding Booking Form */}
-            <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
-              <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-xl">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#f0e6d6]">
-                  <div>
-                    <h4 className="text-lg font-bold text-stone-900 judicial-heading">
-                      {lang === 'ar' ? 'استمارة حجز موعد ومناسبة' : 'Event Booking Form'}
-                    </h4>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      {lang === 'ar'
-                        ? 'احجز موعدك مبكراً لضمان توافر فريق التصوير في يومك المميز'
-                        : 'Book in advance to secure our cinematography crew for your date'}
-                    </p>
-                  </div>
-                  <Sparkles className="w-5 h-5 text-amber-700 shrink-0" />
-                </div>
-
-                <form onSubmit={handleSendMessage} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Direct VIP Booking Card (When public form is disabled for regular visitors) */}
+            {(!data.profile?.showBookingFormPublic && !isAdminAuthenticated) ? (
+              <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
+                <div className="p-8 sm:p-10 rounded-3xl bg-white border border-[#ded0bf] shadow-xl space-y-6">
+                  <div className="flex items-center justify-between pb-5 border-b border-[#f0e6d6]">
                     <div>
-                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                        {lang === 'ar' ? 'الاسم بالكامل' : 'Your Name'} *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                        placeholder={lang === 'ar' ? 'الاسم الكريم' : 'Full Name'}
-                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                        {lang === 'ar' ? 'رقم الهاتف / واتساب' : 'Phone / WhatsApp'} *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={contactForm.phone}
-                        onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                        placeholder="+20 ..."
-                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                        {lang === 'ar' ? 'تاريخ الحفل / المناسبة' : 'Event Date'}
-                      </label>
-                      <input
-                        type="date"
-                        value={contactForm.eventDate}
-                        onChange={(e) => setContactForm({ ...contactForm, eventDate: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                        {lang === 'ar' ? 'مكان الحفل / القاعة' : 'Venue / City'}
-                      </label>
-                      <input
-                        type="text"
-                        value={contactForm.location}
-                        onChange={(e) => setContactForm({ ...contactForm, location: e.target.value })}
-                        placeholder={lang === 'ar' ? 'اسم القاعة أو المدينة' : 'Venue Name / City'}
-                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                      {lang === 'ar' ? 'نوع المناسبة المطلوبة' : 'Event Type'}
-                    </label>
-                    <select
-                      value={contactForm.eventType}
-                      onChange={(e) => setContactForm({ ...contactForm, eventType: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm font-medium"
-                    >
-                      <option value="wedding">
-                        {lang === 'ar' ? 'حفل زفاف سينمائي كامل (Full Wedding Film)' : 'Cinematic Wedding'}
-                      </option>
-                      <option value="destination">
-                        {lang === 'ar' ? 'زفاف شاطئي / سفر خارجي (Destination Wedding)' : 'Destination Beach Wedding'}
-                      </option>
-                      <option value="engagement">
-                        {lang === 'ar' ? 'حفل خطوبة وفوتوسيشن (Engagement & Photoshoot)' : 'Engagement & Photoshoot'}
-                      </option>
-                      <option value="event">
-                        {lang === 'ar' ? 'تغطية مؤتمر أو فعالية كبرى (Corporate Event)' : 'Corporate Event'}
-                      </option>
-                      <option value="commercial">
-                        {lang === 'ar' ? 'إنتاج إعلان تجاري أو فيديو ترويجي (Commercial)' : 'Commercial Video'}
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
-                      {lang === 'ar' ? 'تفاصيل إضافية أو طلبات خاصة' : 'Additional Notes / Vision'} *
-                    </label>
-                    <textarea
-                      rows={4}
-                      required
-                      value={contactForm.message}
-                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                      placeholder={
-                        lang === 'ar'
-                          ? 'أخبرنا عن رؤيتكم لليوم المميز، عدد الحضور، أو أي تفاصيل تحبون أن نركز عليها...'
-                          : 'Tell us about your vision for the special day...'
-                      }
-                      className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSending}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-md transition-all disabled:opacity-50"
-                  >
-                    {isSending ? (
-                      <span>{lang === 'ar' ? 'جاري إرسال الطلب...' : 'Sending Request...'}</span>
-                    ) : (
-                      <>
-                        <span>{lang === 'ar' ? 'إرسال طلب الحجز الآن' : 'Submit Booking Request'}</span>
-                        <Send className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-
-                  {lastBookingSubmitted && (
-                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2.5 animate-fade-in">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
-                        <span className="text-xs font-bold">
-                          {lang === 'ar'
-                            ? `شكراً لك ${lastBookingSubmitted.name}! تم استلام وتسجيل طلبك بنجاح.`
-                            : `Thank you, ${lastBookingSubmitted.name}! Your request has been recorded.`}
-                        </span>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-2">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                        <span>{lang === 'ar' ? 'حجوزات VIP المباشرة' : 'VIP Direct Booking'}</span>
                       </div>
-                      <p className="text-[11px] text-emerald-800 leading-relaxed">
+                      <h4 className="text-xl sm:text-2xl font-bold text-stone-900 judicial-heading">
+                        {lang === 'ar' ? 'تواصل معنا مباشرة لحجز موعدك' : 'Direct Concierge & Event Reservations'}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-stone-600 mt-1.5 leading-relaxed">
                         {lang === 'ar'
-                          ? 'يمكنك أيضاً إرسال نسخة فورية ومباشرة من تفاصيل حجزك عبر الواتساب لتأكيد موعدك أسرع مع فريق KMA.'
-                          : 'You can also send a direct instant copy via WhatsApp to confirm availability immediately with KMA.'}
+                          ? 'لضمان أعلى درجات الخصوصية والتنسيق الفوري لحفلات الزفاف والإنتاجات الكبرى، يتم استقبال وتأكيد الحجوزات مباشرة عبر الواتساب والمكالمات الخاصة.'
+                          : 'To ensure bespoke attention and dedicated cinema crews for every royal wedding, bookings and date checks are coordinated directly with our directors.'}
                       </p>
+                    </div>
+                  </div>
+
+                  {/* VIP Actions */}
+                  <div className="space-y-3 pt-2">
+                    {data.profile?.phone && (
+                      <a
+                        href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                          'Hello KMA Wedding & Media Production, I would like to inquire about booking your cinematic team for an upcoming event.'
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01]"
+                      >
+                        <Phone className="w-5 h-5 fill-current" />
+                        <span>{lang === 'ar' ? 'تحدث مباشرة مع فريق الحجوزات عبر واتساب' : 'Chat Directly via WhatsApp'}</span>
+                      </a>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {data.profile?.phone && (
                         <a
-                          href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                            `Hello KMA Production! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
+                          href={`tel:${data.profile.phone.replace(/[^+\d]/g, '')}`}
+                          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#fbf9f6] hover:bg-[#f6eee4] border border-[#ded0bf] text-stone-800 font-bold text-xs transition-colors shadow-sm"
                         >
-                          <Phone className="w-3.5 h-3.5" />
-                          <span>{lang === 'ar' ? 'تأكيد الحجز فوراً عبر واتساب' : 'Confirm Instantly via WhatsApp'}</span>
+                          <Phone className="w-4 h-4 text-amber-800" />
+                          <span>{lang === 'ar' ? 'اتصال هاتفي مباشر' : 'Call Studio Director'}</span>
+                        </a>
+                      )}
+                      {data.profile?.email && (
+                        <a
+                          href={`mailto:${data.profile.email}?subject=VIP%20Event%20Booking%20Inquiry`}
+                          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#fbf9f6] hover:bg-[#f6eee4] border border-[#ded0bf] text-stone-800 font-bold text-xs transition-colors shadow-sm"
+                        >
+                          <Mail className="w-4 h-4 text-amber-800" />
+                          <span>{lang === 'ar' ? 'مراسلة عبر الإيميل' : 'Send Formal Inquiry'}</span>
                         </a>
                       )}
                     </div>
-                  )}
-                </form>
+                  </div>
+
+                  <div className="pt-4 border-t border-[#f0e6d6] flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500 font-medium">
+                    <span>⚡ {lang === 'ar' ? 'رد فوري خلال دقائق' : 'Fast response within minutes'}</span>
+                    <span>🔒 {lang === 'ar' ? 'حجوزات مؤكدة وسرية تامة' : 'Private & Confidential'}</span>
+                    <span>🌟 {lang === 'ar' ? 'تغطية داخل وخارج مصر' : 'Worldwide Destination Coverage'}</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Interactive Wedding Booking Form (Shown if enabled or admin preview) */
+              <div className="reveal lg:col-span-7" style={{ transitionDelay: '120ms' }}>
+                <div className="p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-xl">
+                  {isAdminAuthenticated && !data.profile?.showBookingFormPublic && (
+                    <div className="mb-4 p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-mono flex items-center justify-between">
+                      <span>👁️ Admin Preview: This form is currently HIDDEN from regular visitors.</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#f0e6d6]">
+                    <div>
+                      <h4 className="text-lg font-bold text-stone-900 judicial-heading">
+                        {lang === 'ar' ? 'استمارة حجز موعد ومناسبة' : 'Event Booking Form'}
+                      </h4>
+                      <p className="text-xs text-stone-500 mt-0.5">
+                        {lang === 'ar'
+                          ? 'احجز موعدك مبكراً لضمان توافر فريق التصوير في يومك المميز'
+                          : 'Book in advance to secure our cinematography crew for your date'}
+                      </p>
+                    </div>
+                    <Sparkles className="w-5 h-5 text-amber-700 shrink-0" />
+                  </div>
+
+                  <form onSubmit={handleSendMessage} className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                          {lang === 'ar' ? 'الاسم بالكامل' : 'Your Name'} *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={contactForm.name}
+                          onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                          placeholder={lang === 'ar' ? 'الاسم الكريم' : 'Full Name'}
+                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                          {lang === 'ar' ? 'رقم الهاتف / واتساب' : 'Phone / WhatsApp'} *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={contactForm.phone}
+                          onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                          placeholder="+20 ..."
+                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                          {lang === 'ar' ? 'تاريخ الحفل / المناسبة' : 'Event Date'}
+                        </label>
+                        <input
+                          type="date"
+                          value={contactForm.eventDate}
+                          onChange={(e) => setContactForm({ ...contactForm, eventDate: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                          {lang === 'ar' ? 'مكان الحفل / القاعة' : 'Venue / City'}
+                        </label>
+                        <input
+                          type="text"
+                          value={contactForm.location}
+                          onChange={(e) => setContactForm({ ...contactForm, location: e.target.value })}
+                          placeholder={lang === 'ar' ? 'اسم القاعة أو المدينة' : 'Venue Name / City'}
+                          className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                        {lang === 'ar' ? 'نوع المناسبة المطلوبة' : 'Event Type'}
+                      </label>
+                      <select
+                        value={contactForm.eventType}
+                        onChange={(e) => setContactForm({ ...contactForm, eventType: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 focus:outline-none focus:border-amber-700 text-xs sm:text-sm font-medium"
+                      >
+                        <option value="wedding">
+                          {lang === 'ar' ? 'حفل زفاف سينمائي كامل (Full Wedding Film)' : 'Cinematic Wedding'}
+                        </option>
+                        <option value="destination">
+                          {lang === 'ar' ? 'زفاف شاطئي / سفر خارجي (Destination Wedding)' : 'Destination Beach Wedding'}
+                        </option>
+                        <option value="engagement">
+                          {lang === 'ar' ? 'حفل خطوبة وفوتوسيشن (Engagement & Photoshoot)' : 'Engagement & Photoshoot'}
+                        </option>
+                        <option value="event">
+                          {lang === 'ar' ? 'تغطية مؤتمر أو فعالية كبرى (Corporate Event)' : 'Corporate Event'}
+                        </option>
+                        <option value="commercial">
+                          {lang === 'ar' ? 'إنتاج إعلان تجاري أو فيديو ترويجي (Commercial)' : 'Commercial Video'}
+                        </option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                        {lang === 'ar' ? 'تفاصيل إضافية أو طلبات خاصة' : 'Additional Notes / Vision'} *
+                      </label>
+                      <textarea
+                        rows={4}
+                        required
+                        value={contactForm.message}
+                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                        placeholder={
+                          lang === 'ar'
+                            ? 'أخبرنا عن رؤيتكم لليوم المميز، عدد الحضور، أو أي تفاصيل تحبون أن نركز عليها...'
+                            : 'Tell us about your vision for the special day...'
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 text-xs sm:text-sm resize-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSending}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-800 to-yellow-900 hover:from-amber-700 hover:to-yellow-800 shadow-md transition-all disabled:opacity-50"
+                    >
+                      {isSending ? (
+                        <span>{lang === 'ar' ? 'جاري إرسال الطلب...' : 'Sending Request...'}</span>
+                      ) : (
+                        <>
+                          <span>{lang === 'ar' ? 'إرسال طلب الحجز الآن' : 'Submit Booking Request'}</span>
+                          <Send className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+
+                    {lastBookingSubmitted && (
+                      <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2.5 animate-fade-in">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                          <span className="text-xs font-bold">
+                            {lang === 'ar'
+                              ? `شكراً لك ${lastBookingSubmitted.name}! تم استلام وتسجيل طلبك بنجاح.`
+                              : `Thank you, ${lastBookingSubmitted.name}! Your request has been recorded.`}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800 leading-relaxed">
+                          {lang === 'ar'
+                            ? 'يمكنك أيضاً إرسال نسخة فورية ومباشرة من تفاصيل حجزك عبر الواتساب لتأكيد موعدك أسرع مع فريق KMA.'
+                            : 'You can also send a direct instant copy via WhatsApp to confirm availability immediately with KMA.'}
+                        </p>
+                        {data.profile?.phone && (
+                          <a
+                            href={`https://wa.me/${data.profile.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                              `Hello KMA Production! I just submitted a booking request for my ${lastBookingSubmitted.eventType} on ${lastBookingSubmitted.eventDate || 'soon'} in ${lastBookingSubmitted.location || 'Cairo'}. Name: ${lastBookingSubmitted.name}.`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>{lang === 'ar' ? 'تأكيد الحجز فوراً عبر واتساب' : 'Confirm Instantly via WhatsApp'}</span>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

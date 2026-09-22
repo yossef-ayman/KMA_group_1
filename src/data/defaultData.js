@@ -12,6 +12,7 @@ export const DEFAULT_PORTFOLIO_DATA = {
     avatarUrl: "/logo.png",
     logoUrl: "/logo.png",
     openToWork: true,
+    showBookingFormPublic: false,
     socials: {
       instagram: "https://instagram.com/kma_wedding",
       facebook: "https://facebook.com/kmawedding",

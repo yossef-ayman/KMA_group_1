@@ -65,6 +65,7 @@ export const AdminPage = () => {
     editingCertId,
     setEditingCertId,
     bookings,
+    addBooking,
     deleteBooking,
     updateBookingStatus,
     showToast,
@@ -519,6 +520,48 @@ export const AdminPage = () => {
 
   const handleSaveSkills = () => {
     updateSkills(skillsCatalog);
+  };
+
+  // ============================================================
+  // 8. ADMIN DIRECT BOOKING FORM
+  // ============================================================
+  const [showAdminBookingForm, setShowAdminBookingForm] = useState(false);
+  const [adminBookingForm, setAdminBookingForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    eventType: 'wedding',
+    eventDate: '',
+    location: '',
+    message: ''
+  });
+
+  const handleAdminSubmitBooking = async (e) => {
+    e.preventDefault();
+    if (!adminBookingForm.name.trim() || !adminBookingForm.phone.trim()) {
+      showToast('Client name and phone are required.', 'error');
+      return;
+    }
+    await addBooking({
+      name: adminBookingForm.name.trim(),
+      phone: adminBookingForm.phone.trim(),
+      email: adminBookingForm.email.trim(),
+      eventType: adminBookingForm.eventType,
+      eventDate: adminBookingForm.eventDate,
+      location: adminBookingForm.location.trim(),
+      message: adminBookingForm.message.trim()
+    });
+    setAdminBookingForm({
+      name: '',
+      phone: '',
+      email: '',
+      eventType: 'wedding',
+      eventDate: '',
+      location: '',
+      message: ''
+    });
+    setShowAdminBookingForm(false);
+    showToast('New booking added and synchronized successfully!');
   };
 
   // Handle Passcode Submission for Login Gate
@@ -2286,6 +2329,168 @@ export const AdminPage = () => {
                 </span>
               </div>
             </div>
+
+            {/* Public Booking Form Visibility Toggle */}
+            <div className="p-4 rounded-2xl bg-[#fbf9f6] border border-[#ded0bf] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
+                  <Sparkles className="w-4 h-4 text-amber-800" />
+                  <span>Public Event Booking Form on Main Website</span>
+                </div>
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  {data.profile?.showBookingFormPublic
+                    ? 'The booking form is currently VISIBLE to all public visitors on the website.'
+                    : 'The booking form is currently HIDDEN from regular visitors (Private VIP direct contact mode active).'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newState = !data.profile?.showBookingFormPublic;
+                    updateProfile({ showBookingFormPublic: newState });
+                    showToast(
+                      newState
+                        ? 'Event Booking Form is now visible on public website.'
+                        : 'Event Booking Form is now hidden from public website (Private Mode).'
+                    );
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${
+                    data.profile?.showBookingFormPublic
+                      ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm'
+                      : 'bg-stone-200 hover:bg-stone-300 text-stone-700 border-stone-300'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${data.profile?.showBookingFormPublic ? 'bg-white animate-pulse' : 'bg-stone-500'}`} />
+                  <span>
+                    {data.profile?.showBookingFormPublic ? 'Visible to Visitors' : 'Hidden from Visitors'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAdminBookingForm(!showAdminBookingForm)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-800 hover:bg-amber-900 text-white shadow-sm transition-colors flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{showAdminBookingForm ? 'Close Entry Form' : 'New Manual Booking'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Admin Manual Booking Form (Expandable) */}
+            {showAdminBookingForm && (
+              <form onSubmit={handleAdminSubmitBooking} className="p-6 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-4 animate-fade-in">
+                <div className="flex items-center justify-between pb-3 border-b border-amber-200/70">
+                  <h3 className="text-sm font-bold text-amber-950 flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-amber-800" />
+                    <span>Record New Event Booking / Test Entry</span>
+                  </h3>
+                  <span className="text-[11px] text-amber-800 font-mono">Direct Admin Entry</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Client / Couple Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={adminBookingForm.name}
+                      onChange={(e) => setAdminBookingForm({ ...adminBookingForm, name: e.target.value })}
+                      placeholder="e.g. Yasmine & Tarek"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Phone / WhatsApp *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={adminBookingForm.phone}
+                      onChange={(e) => setAdminBookingForm({ ...adminBookingForm, phone: e.target.value })}
+                      placeholder="+20 100 ..."
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Event Type
+                    </label>
+                    <select
+                      value={adminBookingForm.eventType}
+                      onChange={(e) => setAdminBookingForm({ ...adminBookingForm, eventType: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 font-medium"
+                    >
+                      <option value="wedding">Cinematic Wedding</option>
+                      <option value="destination">Destination Wedding</option>
+                      <option value="engagement">Engagement & Photoshoot</option>
+                      <option value="event">Corporate Event</option>
+                      <option value="commercial">Commercial Video</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Event Date
+                    </label>
+                    <input
+                      type="date"
+                      value={adminBookingForm.eventDate}
+                      onChange={(e) => setAdminBookingForm({ ...adminBookingForm, eventDate: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Venue / Location
+                    </label>
+                    <input
+                      type="text"
+                      value={adminBookingForm.location}
+                      onChange={(e) => setAdminBookingForm({ ...adminBookingForm, location: e.target.value })}
+                      placeholder="e.g. Mena House Cairo"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                    Event Notes / Client Requests
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={adminBookingForm.message}
+                    onChange={(e) => setAdminBookingForm({ ...adminBookingForm, message: e.target.value })}
+                    placeholder="Requested 4K drones, same-day edit film, 3 cinematographers..."
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 resize-none"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminBookingForm(false)}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-stone-600 hover:text-stone-900 bg-white border border-[#ded0bf]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-amber-800 hover:bg-amber-900 shadow-sm"
+                  >
+                    Save Booking Inquiry
+                  </button>
+                </div>
+              </form>
+            )}
 
             {/* Bookings List */}
             {(!bookings || bookings.length === 0) ? (
