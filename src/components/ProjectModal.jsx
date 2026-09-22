@@ -25,6 +25,36 @@ export const ProjectModal = () => {
 
   const proj = activeModalProject;
 
+  // Determine video embed (YouTube, Vimeo, or direct MP4/stream)
+  const getVideoEmbed = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    if (!trimmed) return null;
+
+    const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch) {
+      return {
+        type: 'iframe',
+        src: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`
+      };
+    }
+
+    const vimeoMatch = trimmed.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+    if (vimeoMatch) {
+      return {
+        type: 'iframe',
+        src: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`
+      };
+    }
+
+    return {
+      type: 'video',
+      src: trimmed
+    };
+  };
+
+  const videoEmbed = getVideoEmbed(proj.videoUrl);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-stone-950/80 backdrop-blur-md animate-fade-in">
       <div
@@ -34,16 +64,26 @@ export const ProjectModal = () => {
 
       <div className="relative w-full max-w-3xl bg-[#fdfbf7] rounded-3xl border border-[#ded0bf] shadow-2xl overflow-hidden z-10 my-8">
         {/* Modal Header with Video or Image */}
-        <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-stone-950 flex items-center justify-center">
-          {proj.videoUrl ? (
-            <video
-              src={proj.videoUrl}
-              poster={proj.imageUrl}
-              controls
-              autoPlay
-              playsInline
-              className="w-full h-full object-cover z-0"
-            />
+        <div className="relative h-64 sm:h-96 w-full overflow-hidden bg-stone-950 flex items-center justify-center">
+          {videoEmbed ? (
+            videoEmbed.type === 'iframe' ? (
+              <iframe
+                src={videoEmbed.src}
+                title={t(proj.title)}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                src={videoEmbed.src}
+                poster={proj.imageUrl}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover z-0"
+              />
+            )
           ) : (
             <>
               <img
@@ -65,7 +105,7 @@ export const ProjectModal = () => {
           </button>
 
           {/* Category & Status Pill */}
-          <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 z-20">
+          <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 flex items-center gap-2 z-20 pointer-events-none">
             <span className="px-3.5 py-1 text-xs font-bold rounded-full bg-amber-900/90 text-amber-100 border border-amber-500/50 shadow-md flex items-center gap-1.5">
               <Film className="w-3.5 h-3.5" />
               <span>{t(proj.categoryLabel)}</span>
@@ -78,26 +118,47 @@ export const ProjectModal = () => {
             )}
           </div>
 
-          {/* Title on Header */}
-          <div className="absolute bottom-5 left-6 right-6 text-white">
-            <div className="flex items-center gap-2 text-amber-300 text-xs font-mono font-medium mb-1">
-              <Calendar className="w-3.5 h-3.5" />
-              <span>{proj.year}</span>
-              {proj.tribunal && (
-                <>
-                  <span>•</span>
-                  <span className="truncate">{proj.tribunal}</span>
-                </>
-              )}
+          {/* Title on Header ONLY if no video to avoid obscuring controls */}
+          {!videoEmbed && (
+            <div className="absolute bottom-5 left-6 right-6 text-white pointer-events-none">
+              <div className="flex items-center gap-2 text-amber-300 text-xs font-mono font-medium mb-1">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{proj.year}</span>
+                {proj.tribunal && (
+                  <>
+                    <span>•</span>
+                    <span className="truncate">{proj.tribunal}</span>
+                  </>
+                )}
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white judicial-heading leading-snug">
+                {t(proj.title)}
+              </h3>
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white judicial-heading leading-snug">
-              {t(proj.title)}
-            </h3>
-          </div>
+          )}
         </div>
 
         {/* Modal Body */}
         <div className="p-6 sm:p-8 space-y-6 max-h-[calc(85vh-16rem)] overflow-y-auto">
+          {/* If video is embedded, display title and metadata cleanly at the top of the body */}
+          {videoEmbed && (
+            <div className="pb-4 border-b border-[#e8dfd5]">
+              <div className="flex items-center gap-2 text-amber-900 text-xs font-mono font-semibold mb-1">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{proj.year}</span>
+                {proj.tribunal && (
+                  <>
+                    <span>•</span>
+                    <span className="truncate">{proj.tribunal}</span>
+                  </>
+                )}
+              </div>
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-stone-900 judicial-heading">
+                {t(proj.title)}
+              </h3>
+            </div>
+          )}
+
           {/* Key Facts Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#f5ede1] border border-[#e5dacb]">
             <div>
