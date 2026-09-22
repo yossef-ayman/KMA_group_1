@@ -91,6 +91,60 @@ export const AdminPage = () => {
     return String(v);
   };
 
+  // Video embed parser for live preview in Admin (Google Drive, YouTube, Vimeo, MP4)
+  const getAdminVideoEmbed = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    if (!trimmed) return null;
+
+    // Google Drive video link
+    const driveMatch = trimmed.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      return {
+        type: 'iframe',
+        provider: 'Google Drive Video (100% Free)',
+        src: `https://drive.google.com/file/d/${driveMatch[1]}/preview`
+      };
+    }
+
+    // YouTube
+    const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch) {
+      return {
+        type: 'iframe',
+        provider: 'YouTube Video',
+        src: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0`
+      };
+    }
+
+    // Vimeo
+    const vimeoMatch = trimmed.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+    if (vimeoMatch) {
+      return {
+        type: 'iframe',
+        provider: 'Vimeo Cinema Video',
+        src: `https://player.vimeo.com/video/${vimeoMatch[1]}`
+      };
+    }
+
+    // Dropbox
+    if (trimmed.includes('dropbox.com')) {
+      const dbUrl = trimmed.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace(/[?&]dl=[01]/, '');
+      return {
+        type: 'video',
+        provider: 'Dropbox Video Stream',
+        src: dbUrl
+      };
+    }
+
+    // Direct MP4 / WebM
+    return {
+      type: 'video',
+      provider: 'Direct Video Stream (MP4/WebM)',
+      src: trimmed
+    };
+  };
+
   // Login Gate state
   const [passcodeAttempt, setPasscodeAttempt] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
@@ -745,94 +799,176 @@ export const AdminPage = () => {
             </div>
           </div>
 
-          {/* Navigation Tab Bar with all 9 Sections */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-1 border-t border-[#e8dfd5] scrollbar-none">
-            {/* Tab 1: Theme & Colors */}
-            <button
+          {/* VIP Studio Quick Stats Overview Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-3 pb-2 border-t border-[#e8dfd5]">
+            <div
+              onClick={() => setActiveTab('projects')}
+              className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between shadow-xs ${
+                activeTab === 'projects' ? 'bg-amber-50/90 border-amber-600 ring-2 ring-amber-600/20' : 'bg-white border-[#ded0bf] hover:border-amber-400'
+              }`}
+            >
+              <div>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">أعمال المعرض</span>
+                <span className="text-sm font-bold text-stone-900 font-serif">{data.projects.length} أفلام وإنتاجات</span>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
+                <Briefcase className="w-4 h-4" />
+              </div>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('bookings')}
+              className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between shadow-xs ${
+                activeTab === 'bookings' ? 'bg-amber-50/90 border-amber-600 ring-2 ring-amber-600/20' : 'bg-white border-[#ded0bf] hover:border-amber-400'
+              }`}
+            >
+              <div>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">طلبات الحجز</span>
+                <span className="text-sm font-bold text-stone-900 font-serif">{(bookings || []).length} استفسار</span>
+              </div>
+              <div className="relative w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center">
+                <Inbox className="w-4 h-4" />
+                {(bookings || []).length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+                )}
+              </div>
+            </div>
+
+            <div
               onClick={() => setActiveTab('theme')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
-                activeTab === 'theme'
-                  ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+              className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between shadow-xs ${
+                activeTab === 'theme' ? 'bg-amber-50/90 border-amber-600 ring-2 ring-amber-600/20' : 'bg-white border-[#ded0bf] hover:border-amber-400'
               }`}
             >
-              <Palette className="w-4 h-4" />
-              <span>Theme & Colors</span>
-              <span className={`w-2 h-2 rounded-full ${activeTab === 'theme' ? 'bg-amber-300' : 'bg-amber-600'}`} />
-            </button>
+              <div>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">إضاءة الشاشة</span>
+                <span className="text-sm font-bold text-stone-900 font-serif">
+                  {bgTone === 'white' ? 'أبيض ناصع 🌟' : bgTone === 'dark' ? 'سينمائي 🖤' : 'بيج كلاسيك 📜'}
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center">
+                <Palette className="w-4 h-4" />
+              </div>
+            </div>
 
-            {/* Tab 2: Studio & Profile */}
-            <button
+            <div
               onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
-                activeTab === 'profile'
-                  ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+              className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between shadow-xs ${
+                activeTab === 'profile' ? 'bg-amber-50/90 border-amber-600 ring-2 ring-amber-600/20' : 'bg-white border-[#ded0bf] hover:border-amber-400'
               }`}
             >
-              <User className="w-4 h-4" />
-              <span>Studio & Stats</span>
-            </button>
+              <div>
+                <span className="text-[10px] font-bold uppercase text-stone-500 block">إشعارات الإيميل</span>
+                <span className="text-sm font-bold text-stone-900 font-serif">
+                  {profileForm.web3formsKey ? 'مفعل مجاناً ✅' : 'يحتاج مفتاح ⚠️'}
+                </span>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center">
+                <Mail className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
 
-            {/* Tab 3: Films & Projects */}
+          {/* Navigation Tab Bar with VIP Prioritized Order */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-1 border-t border-[#e8dfd5] scrollbar-none">
+            {/* VIP Tab 1: Films & Projects */}
             <button
               onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
                 activeTab === 'projects'
-                  ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+                  ? 'bg-amber-800 text-white shadow-sm ring-2 ring-amber-800/30'
+                  : 'text-stone-700 hover:text-stone-950 hover:bg-white/80'
               }`}
             >
               <Briefcase className="w-4 h-4" />
-              <span>Films & Portfolio ({data.projects.length})</span>
+              <span>Films & Portfolio</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                activeTab === 'projects' ? 'bg-white text-amber-950' : 'bg-amber-100 text-amber-900'
+              }`}>
+                {data.projects.length}
+              </span>
             </button>
 
-            {/* Tab 4: Services & Packages */}
+            {/* VIP Tab 2: Client Bookings */}
             <button
-              onClick={() => setActiveTab('services')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
-                activeTab === 'services'
-                  ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+              onClick={() => setActiveTab('bookings')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all relative ${
+                activeTab === 'bookings'
+                  ? 'bg-amber-800 text-white shadow-sm ring-2 ring-amber-800/30'
+                  : 'text-stone-700 hover:text-stone-950 hover:bg-white/80'
               }`}
             >
-              <Film className="w-4 h-4" />
-              <span>Services & Packages ({(data.practiceAreas || []).length})</span>
+              <Inbox className="w-4 h-4" />
+              <span>Client Inquiries</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                (bookings || []).length > 0
+                  ? activeTab === 'bookings' ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white animate-pulse'
+                  : 'bg-stone-200 text-stone-600'
+              }`}>
+                {(bookings || []).length}
+              </span>
             </button>
 
-            {/* Tab 5: Milestones */}
+            {/* VIP Tab 3: Studio & Profile */}
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+                activeTab === 'profile'
+                  ? 'bg-amber-800 text-white shadow-sm ring-2 ring-amber-800/30'
+                  : 'text-stone-700 hover:text-stone-950 hover:bg-white/80'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span>Studio, Vision & Stats</span>
+            </button>
+
+            {/* VIP Tab 4: Theme & Colors */}
+            <button
+              onClick={() => setActiveTab('theme')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+                activeTab === 'theme'
+                  ? 'bg-amber-800 text-white shadow-sm ring-2 ring-amber-800/30'
+                  : 'text-stone-700 hover:text-stone-950 hover:bg-white/80'
+              }`}
+            >
+              <Palette className="w-4 h-4" />
+              <span>Theme & Lighting</span>
+              <span className={`w-2.5 h-2.5 rounded-full ${activeTab === 'theme' ? 'bg-amber-300' : 'bg-amber-600'}`} />
+            </button>
+
+            {/* VIP Tab 5: Milestones & Venues */}
             <button
               onClick={() => setActiveTab('milestones')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
                 activeTab === 'milestones'
-                  ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+                  ? 'bg-amber-800 text-white shadow-sm ring-2 ring-amber-800/30'
+                  : 'text-stone-700 hover:text-stone-950 hover:bg-white/80'
               }`}
             >
               <Clock className="w-4 h-4" />
-              <span>Journey & Milestones ({(data.milestones || []).length})</span>
+              <span>Venues & Legacy</span>
             </button>
 
-            {/* Tab 6: Permits & Awards */}
+            {/* VIP Tab 6: Backup & Restore */}
             <button
-              onClick={() => setActiveTab('certificates')}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
-                activeTab === 'certificates'
-                  ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+              onClick={() => setActiveTab('backup')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+                activeTab === 'backup'
+                  ? 'bg-amber-800 text-white shadow-sm ring-2 ring-amber-800/30'
+                  : 'text-stone-700 hover:text-stone-950 hover:bg-white/80'
               }`}
             >
-              <Award className="w-4 h-4" />
-              <span>Permits & Awards ({data.certificates.length})</span>
+              <RotateCcw className="w-4 h-4" />
+              <span>Backup & Security</span>
             </button>
 
-            {/* Tab 7: Gear & Skills */}
+            {/* Extra Tab: Gear & Tech */}
             <button
               onClick={() => setActiveTab('skills')}
               className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
                 activeTab === 'skills'
                   ? 'bg-amber-800 text-white shadow-sm'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/70'
+                  : 'text-stone-500 hover:text-stone-800 hover:bg-white/60'
               }`}
             >
               <Layers className="w-4 h-4" />
@@ -1664,6 +1800,46 @@ export const AdminPage = () => {
                     <p className="text-[10px] text-stone-500 mt-1">
                       💡 مجاني 100% وبدون استهلاك أي مساحة من السيرفر: ضع رابط مشاركة الفيديو من <span className="font-bold text-amber-900">Google Drive</span> أو <span className="font-bold text-amber-900">YouTube</span> أو <span className="font-bold text-amber-900">Vimeo</span> أو رابط MP4 مباشر، وسيبدأ الفيديو في العمل تلقائياً داخل الموقع فوراً عند الضغط على الفيلم!
                     </p>
+
+                    {/* WOW Live Video Test Preview in Admin */}
+                    {projFormData.videoUrl && (() => {
+                      const embed = getAdminVideoEmbed(projFormData.videoUrl);
+                      if (!embed) return null;
+                      return (
+                        <div className="mt-3 p-3.5 rounded-2xl bg-stone-950 border border-amber-900/40 text-white space-y-2.5 animate-fade-in shadow-xl">
+                          <div className="flex items-center justify-between text-xs font-bold text-amber-300">
+                            <span className="flex items-center gap-1.5">
+                              <Film className="w-3.5 h-3.5 text-amber-400" />
+                              <span>Live Video Test Preview • معاينة حية للفيديو</span>
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-full bg-amber-950/80 text-amber-300 text-[10px] font-mono border border-amber-500/40">
+                              {embed.provider}
+                            </span>
+                          </div>
+                          <div className="h-44 sm:h-56 w-full rounded-xl overflow-hidden bg-black flex items-center justify-center border border-stone-800 shadow-inner">
+                            {embed.type === 'iframe' ? (
+                              <iframe
+                                src={embed.src}
+                                title="Admin Video Preview"
+                                className="w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            ) : (
+                              <video
+                                src={embed.src}
+                                controls
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            <span>إذا كان الفيديو يعمل في الصندوق أعلاه، فهو جاهز وسيعمل للزوار فوراً بنجاح 100%!</span>
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Media Upload for Project Poster */}
@@ -2662,20 +2838,38 @@ export const AdminPage = () => {
                       </p>
                     </div>
 
-                    {/* Quick WhatsApp Contact Action */}
-                    {b.phone && (
-                      <div className="flex justify-end pt-1">
-                        <a
-                          href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors"
-                        >
-                          <Phone className="w-3 h-3" />
-                          <span>Message on WhatsApp</span>
-                        </a>
+                    {/* Quick WhatsApp & Call Action Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#eee3d5]">
+                      <div className="text-[11px] text-stone-500 font-medium">
+                        💡 تواصل فوري: اضغط لفتح شات واتساب مجهز بالاسم والتفاصيل
                       </div>
-                    )}
+
+                      <div className="flex items-center gap-2">
+                        {b.phone && (
+                          <>
+                            <a
+                              href={`tel:${b.phone.replace(/[^+\d]/g, '')}`}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-stone-100 text-stone-800 border border-[#ded0bf] text-xs font-bold shadow-xs transition-colors"
+                            >
+                              <Phone className="w-3.5 h-3.5 text-amber-800" />
+                              <span>اتصال هاتفي</span>
+                            </a>
+
+                            <a
+                              href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                                `أهلاً بحضرتك يا ${b.name}، تواصل معك استوديو KMA للإنتاج السينمائي بخصوص طلب حجز (${b.eventType || 'حفل الزفاف'}) يوم ${b.eventDate || 'المحدد'} في ${b.location || 'القاهرة'}. يسعدنا خدمتكم ومناقشة تفاصيل الباقة وتأكيد الموعد.`
+                              )}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold shadow-md transition-all hover:scale-[1.01]"
+                            >
+                              <Phone className="w-3.5 h-3.5 fill-current" />
+                              <span>رد فوري ذكي عبر واتساب</span>
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
