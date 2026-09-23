@@ -25,6 +25,23 @@ export const DEFAULT_PORTFOLIO_DATA = {
     stats: []
   },
 
+  // Films & Portfolio Header & Category Filters configuration
+  filmsHeader: {
+    badge: "Cinematography & Films",
+    title: "KMA Featured Films & Highlights",
+    subtitle: "Watch live highlights from our premier weddings. Click on any work to play the video instantly.",
+    countLabel: "Films Shown",
+    searchPlaceholder: "Search films by title, venue, or style...",
+    allWorksLabel: "All Works",
+    categories: [
+      { id: "weddings", label: "Cinematic Weddings" },
+      { id: "destination", label: "Destination Weddings" },
+      { id: "photography", label: "Bridal Photography" },
+      { id: "events", label: "Corporate Events" },
+      { id: "commercial", label: "Commercial Media" }
+    ]
+  },
+
   // Completely clean lists - Only user uploaded/added items will appear!
   certificates: [],
   projects: [],

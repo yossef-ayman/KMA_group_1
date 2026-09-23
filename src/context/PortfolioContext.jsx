@@ -556,6 +556,24 @@ export const PortfolioProvider = ({ children }) => {
     showToast('Key statistics updated successfully');
   };
 
+  // Films Section Header & Category Filters configuration
+  const updateFilmsHeader = (headerUpdates) => {
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        filmsHeader: {
+          ...(prev.filmsHeader || {}),
+          ...headerUpdates
+        }
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
+    showToast('Films section header & categories saved successfully!');
+  };
+
   // Certificate / Permit methods
   // Certificate / Permit methods
   const addCertificate = (newCert) => {
@@ -888,7 +906,8 @@ export const PortfolioProvider = ({ children }) => {
         updateCertificate,
         deleteCertificate,
         refreshCertificates,
-        // Projects
+        // Projects & Films Header Settings
+        updateFilmsHeader,
         addProject,
         updateProject,
         deleteProject,

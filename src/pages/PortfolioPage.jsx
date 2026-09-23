@@ -38,31 +38,47 @@ export const PortfolioPage = () => {
 
   const [lastBookingSubmitted, setLastBookingSubmitted] = useState(null);
 
-  // Projects filter and search state (defaults to 'weddings', All Works is at the end)
-  const [projectFilter, setProjectFilter] = useState('weddings');
+  const filmsHeader = data.filmsHeader || {
+    badge: 'Cinematography & Films',
+    title: 'KMA Featured Films & Highlights',
+    subtitle: 'Watch live highlights from our premier weddings. Click on any work to play the video instantly.',
+    countLabel: 'Films Shown',
+    searchPlaceholder: 'Search films by title, venue, or style...',
+    allWorksLabel: 'All Works',
+    categories: [
+      { id: 'weddings', label: 'Cinematic Weddings' },
+      { id: 'destination', label: 'Destination Weddings' },
+      { id: 'photography', label: 'Bridal Photography' },
+      { id: 'events', label: 'Corporate Events' },
+      { id: 'commercial', label: 'Commercial Media' }
+    ]
+  };
+
+  const configuredCategories = filmsHeader.categories && filmsHeader.categories.length > 0
+    ? filmsHeader.categories
+    : [
+        { id: 'weddings', label: 'Cinematic Weddings' },
+        { id: 'destination', label: 'Destination Weddings' },
+        { id: 'photography', label: 'Bridal Photography' },
+        { id: 'events', label: 'Corporate Events' },
+        { id: 'commercial', label: 'Commercial Media' }
+      ];
+
+  const projectCategories = [
+    ...configuredCategories,
+    { id: 'all', label: filmsHeader.allWorksLabel || 'All Works' }
+  ];
+
+  // Projects filter and search state (defaults to first category or 'all')
+  const [projectFilter, setProjectFilter] = useState(() => configuredCategories[0]?.id || 'all');
   const [projectSearch, setProjectSearch] = useState('');
 
-  // Contact / Event Booking form state
-  const [contactForm, setContactForm] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    eventType: 'wedding',
-    eventDate: '',
-    location: '',
-    message: ''
-  });
-  const [isSending, setIsSending] = useState(false);
-
-  // Category filters for media & wedding works
-  const projectCategories = [
-    { id: 'weddings', label: 'Cinematic Weddings' },
-    { id: 'destination', label: 'Destination Weddings' },
-    { id: 'photography', label: 'Bridal Photography' },
-    { id: 'events', label: 'Corporate Events' },
-    { id: 'commercial', label: 'Commercial Media' },
-    { id: 'all', label: 'All Works' }
-  ];
+  // Keep filter valid if categories change
+  useEffect(() => {
+    if (projectFilter !== 'all' && !configuredCategories.some((c) => c.id === projectFilter)) {
+      setProjectFilter(configuredCategories[0]?.id || 'all');
+    }
+  }, [configuredCategories, projectFilter]);
 
   // Filter projects
   const filteredProjects = (data.projects || []).filter((proj) => {
@@ -75,6 +91,18 @@ export const PortfolioPage = () => {
     const matchesSearch = !q || titleText.includes(q) || descText.includes(q) || clientText.includes(q);
     return matchesCategory && matchesSearch;
   });
+
+  // Contact / Event Booking form state
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    eventType: 'wedding',
+    eventDate: '',
+    location: '',
+    message: ''
+  });
+  const [isSending, setIsSending] = useState(false);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -453,19 +481,19 @@ export const PortfolioPage = () => {
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900 mb-1.5">
                 <Film className="w-4 h-4 text-amber-800" />
-                <span>Cinematography & Films</span>
+                <span>{filmsHeader.badge || 'Cinematography & Films'}</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight judicial-heading">
-                {`${t(data.profile?.shortName) || 'KMA'} Featured Films & Highlights`}
+                {filmsHeader.title || `${t(data.profile?.shortName) || 'KMA'} Featured Films & Highlights`}
               </h3>
               <p className="text-stone-600 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                Watch live highlights from our premier weddings. Click on any work to play the video instantly.
+                {filmsHeader.subtitle || 'Watch live highlights from our premier weddings. Click on any work to play the video instantly.'}
               </p>
             </div>
 
             <div className="text-xs font-bold text-amber-950 bg-amber-100/90 px-3.5 py-1.5 rounded-xl border border-amber-300 shrink-0 self-start md:self-end">
               <span>
-                {filteredProjects.length} Films Shown
+                {filteredProjects.length} {filmsHeader.countLabel || 'Films Shown'}
               </span>
             </div>
           </div>
@@ -479,7 +507,7 @@ export const PortfolioPage = () => {
                 type="text"
                 value={projectSearch}
                 onChange={(e) => setProjectSearch(e.target.value)}
-                placeholder="Search films by title, venue, or style..."
+                placeholder={filmsHeader.searchPlaceholder || 'Search films by title, venue, or style...'}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#ded0bf] text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-amber-700 shadow-sm"
               />
             </div>
