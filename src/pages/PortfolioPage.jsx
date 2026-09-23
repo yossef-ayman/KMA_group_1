@@ -324,122 +324,124 @@ export const PortfolioPage = () => {
       </section>
 
       {/* ============================================================ */}
-      {/* 3. KEY NUMBERS & REALISTIC STATS                             */}
+      {/* 3. KEY NUMBERS & REALISTIC STATS (Only when configured)      */}
       {/* ============================================================ */}
-      <section id="stats" className="py-14 sm:py-16 border-b border-[#e8dfd5] bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-xl mx-auto mb-10 space-y-1.5">
-            <h3 className="text-xl sm:text-2xl font-bold text-stone-900 judicial-heading">
-              Highlights in Numbers
-            </h3>
-            <p className="text-xs text-stone-500 font-medium">
-              A documented track record of client trust and excellence
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {(data.profile?.stats || []).map((stat, idx) => (
-              <div
-                key={idx}
-                className="p-6 rounded-2xl bg-[#fbf9f6] border border-[#e8dfd5] text-center shadow-sm hover:border-amber-400 transition-colors space-y-1.5"
-              >
-                <div className="text-3xl sm:text-4xl font-extrabold text-stone-900 font-serif gradient-gold">
-                  {stat.value}
-                </div>
-                <div className="text-xs sm:text-sm font-bold text-stone-800">
-                  {t(stat.label)}
-                </div>
-                {stat.desc && (
-                  <div className="text-[11px] text-stone-500 font-medium">
-                    {t(stat.desc)}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/* 4. THE LEGACY & VENUES / PARTITIONS WE WORKED WITH           */}
-      {/* ============================================================ */}
-      <section id="partners" className="py-16 sm:py-20 border-b border-[#e8dfd5] bg-[#f5ece1]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          {/* Single Signature Milestone / Journey Block */}
-          <div>
-            <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
-                <Clock className="w-4 h-4 text-amber-800" />
-                <span>{`The ${t(data.profile?.shortName) || 'KMA'} Creative Legacy`}</span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 judicial-heading">
-                Our Creative Journey & Heritage
+      {(data.profile?.stats || []).length > 0 && (
+        <section id="stats" className="py-14 sm:py-16 border-b border-[#e8dfd5] bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-xl mx-auto mb-10 space-y-1.5">
+              <h3 className="text-xl sm:text-2xl font-bold text-stone-900 judicial-heading">
+                Highlights in Numbers
               </h3>
-            </div>
-
-            <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-              <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-800 to-yellow-900 text-white font-bold font-mono text-sm shrink-0 shadow-sm">
-                {(data.milestones && data.milestones[0]?.year) || "2018 - Present"}
-              </div>
-              <div className="space-y-1.5">
-                <h4 className="text-base sm:text-lg font-bold text-stone-900 judicial-heading">
-                  {(data.milestones && t(data.milestones[0]?.title)) || `The ${t(data.profile?.shortName) || 'KMA'} Filmmaking Heritage`}
-                </h4>
-                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
-                  {(data.milestones && t(data.milestones[0]?.description)) ||
-                    'Over 6 years of crafting timeless royal wedding films, documenting premier celebrations, and setting new benchmarks for visual storytelling across prestigious venues.'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Partitions & Prestige Venues We Filmed At */}
-          <div className="pt-4">
-            <div className="text-center max-w-xl mx-auto mb-8 space-y-1.5">
-              <h4 className="text-lg sm:text-xl font-bold text-stone-900 judicial-heading flex items-center justify-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-700" />
-                <span>Prestigious Venues We Have Filmed At</span>
-              </h4>
               <p className="text-xs text-stone-500 font-medium">
-                Experienced across top-tier luxury ballrooms, open-air venues, and coastal resorts
+                A documented track record of client trust and excellence
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-              {(data.partners || [
-                { name: "Four Seasons Nile Plaza", venueType: "Royal Hotel & Ballrooms", location: "Cairo" },
-                { name: "Mena House Pyramids", venueType: "Historic Palace Venue", location: "Giza" },
-                { name: "The Nile Ritz-Carlton", venueType: "Luxury Nile Ballroom", location: "Downtown Cairo" },
-                { name: "Kempinski Royal Maxim", venueType: "Palace Ballrooms", location: "New Cairo" },
-                { name: "Dusit Thani LakeView", venueType: "Open-Air Lakes & Gardens", location: "New Cairo" },
-                { name: "El Gouna Destination", venueType: "Beachfront & Red Sea Marinas", location: "Red Sea" },
-                { name: "Marassi & Hacienda", venueType: "Exclusive Coastal Weddings", location: "North Coast" },
-                { name: "Baron Empain Palace", venueType: "Heritage Landmark Celebrations", location: "Heliopolis" }
-              ]).map((partner, pIdx) => (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {(data.profile?.stats || []).map((stat, idx) => (
                 <div
-                  key={pIdx}
-                  className="p-4 rounded-2xl bg-white border border-[#ded0bf] hover:border-amber-700 transition-all text-center shadow-sm space-y-1 group"
+                  key={idx}
+                  className="p-6 rounded-2xl bg-[#fbf9f6] border border-[#e8dfd5] text-center shadow-sm hover:border-amber-400 transition-colors space-y-1.5"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-[#f7efe4] text-amber-900 mx-auto flex items-center justify-center mb-1 group-hover:bg-amber-100 transition-colors">
-                    <MapPin className="w-4 h-4 text-amber-800" />
+                  <div className="text-3xl sm:text-4xl font-extrabold text-stone-900 font-serif gradient-gold">
+                    {stat.value}
                   </div>
-                  <div className="text-xs font-bold text-stone-900 line-clamp-1">
-                    {partner.name}
+                  <div className="text-xs sm:text-sm font-bold text-stone-800">
+                    {t(stat.label)}
                   </div>
-                  <div className="text-[10px] text-stone-500 font-medium line-clamp-1">
-                    {partner.venueType}
-                  </div>
-                  <div className="text-[10px] font-mono text-amber-900 font-bold">
-                    {partner.location}
-                  </div>
+                  {stat.desc && (
+                    <div className="text-[11px] text-stone-500 font-medium">
+                      {t(stat.desc)}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
+        </section>
+      )}
 
-        </div>
-      </section>
+      {/* ============================================================ */}
+      {/* 4. THE LEGACY & VENUES / PARTITIONS (Only when configured)   */}
+      {/* ============================================================ */}
+      {((data.milestones && data.milestones.length > 0) || (data.partners && data.partners.length > 0)) && (
+        <section id="partners" className="py-16 sm:py-20 border-b border-[#e8dfd5] bg-[#f5ece1]/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            {/* Single Signature Milestone / Journey Block */}
+            {data.milestones && data.milestones.length > 0 && (
+              <div>
+                <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
+                  <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-amber-900">
+                    <Clock className="w-4 h-4 text-amber-800" />
+                    <span>{`The ${t(data.profile?.shortName) || 'KMA'} Creative Legacy`}</span>
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 judicial-heading">
+                    Our Creative Journey & Heritage
+                  </h3>
+                </div>
+
+                <div className="max-w-3xl mx-auto p-6 sm:p-8 rounded-3xl bg-white border border-[#ded0bf] shadow-md flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+                  <div className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-800 to-yellow-900 text-white font-bold font-mono text-sm shrink-0 shadow-sm">
+                    {data.milestones[0]?.year}
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="text-base sm:text-lg font-bold text-stone-900 judicial-heading">
+                      {t(data.milestones[0]?.title)}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-medium">
+                      {t(data.milestones[0]?.description)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Partitions & Prestige Venues We Filmed At */}
+            {data.partners && data.partners.length > 0 && (
+              <div className="pt-4">
+                <div className="text-center max-w-xl mx-auto mb-8 space-y-1.5">
+                  <h4 className="text-lg sm:text-xl font-bold text-stone-900 judicial-heading flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-700" />
+                    <span>Prestigious Venues We Have Filmed At</span>
+                  </h4>
+                  <p className="text-xs text-stone-500 font-medium">
+                    Experienced across top-tier luxury ballrooms, open-air venues, and coastal resorts
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                  {data.partners.map((partner, pIdx) => (
+                    <div
+                      key={pIdx}
+                      className="p-4 rounded-2xl bg-white border border-[#ded0bf] hover:border-amber-700 transition-all text-center shadow-sm space-y-1 group"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-[#f7efe4] text-amber-900 mx-auto flex items-center justify-center mb-1 group-hover:bg-amber-100 transition-colors">
+                        <MapPin className="w-4 h-4 text-amber-800" />
+                      </div>
+                      <div className="text-xs font-bold text-stone-900 line-clamp-1">
+                        {partner.name}
+                      </div>
+                      {partner.venueType && (
+                        <div className="text-[10px] text-stone-500 font-medium line-clamp-1">
+                          {partner.venueType}
+                        </div>
+                      )}
+                      {partner.location && (
+                        <div className="text-[10px] font-mono text-amber-900 font-bold">
+                          {partner.location}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </section>
+      )}
 
       {/* ============================================================ */}
       {/* 5. FEATURED FILMS & PORTFOLIO SHOWCASE (Compact video items) */}
@@ -502,20 +504,39 @@ export const PortfolioPage = () => {
 
           {/* Compact Project Cards with Instant Video & Photo */}
           {filteredProjects.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl bg-white border border-[#ded0bf] shadow-sm">
-              <Film className="w-10 h-10 text-stone-300 mx-auto mb-2" />
-              <p className="text-stone-600 font-medium text-xs sm:text-sm">
-                No projects found matching your search.
+            <div className="p-12 sm:p-16 text-center rounded-3xl bg-white border border-[#ded0bf] shadow-sm max-w-xl mx-auto space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-[#f7efe4] text-amber-900 mx-auto flex items-center justify-center shadow-inner">
+                <Film className="w-7 h-7 text-amber-800" />
+              </div>
+              <h4 className="text-base font-bold text-stone-900 judicial-heading">
+                {(data.projects || []).length === 0
+                  ? 'No Films Uploaded Yet'
+                  : 'No Films Matching Search'}
+              </h4>
+              <p className="text-stone-500 font-medium text-xs sm:text-sm leading-relaxed max-w-sm mx-auto">
+                {(data.projects || []).length === 0
+                  ? 'Your showcase is clean and ready. Add and upload your featured films, videos, and photography sessions from the Admin Dashboard.'
+                  : 'No films match your selected filter or keywords. Try resetting your search.'}
               </p>
-              <button
-                onClick={() => {
-                  setProjectSearch('');
-                  setProjectFilter('weddings');
-                }}
-                className="mt-2 text-xs text-amber-800 font-bold hover:underline"
-              >
-                Reset to Weddings
-              </button>
+              {(data.projects || []).length > 0 ? (
+                <button
+                  onClick={() => {
+                    setProjectSearch('');
+                    setProjectFilter('weddings');
+                  }}
+                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs text-amber-900 font-bold bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Reset Filter</span>
+                </button>
+              ) : (
+                <a
+                  href="#admin"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-amber-800 hover:bg-amber-900 shadow-md transition-all mt-2"
+                >
+                  <span>Open Admin Portal</span>
+                </a>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

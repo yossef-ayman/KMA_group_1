@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -12,35 +14,40 @@ app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// In-Memory Storage Fallback (used when MONGODB_URI is not configured)
-let memoryPortfolioData = null;
+// Persistent local file paths for Node server (fallback when MONGODB_URI is not set)
+const LOCAL_DATA_DIR = path.join(process.cwd(), 'data');
+const LOCAL_DATA_FILE = path.join(LOCAL_DATA_DIR, 'saved_portfolio.json');
+const LOCAL_BOOKINGS_FILE = path.join(LOCAL_DATA_DIR, 'saved_bookings.json');
+
+function ensureDataDir() {
+  try {
+    if (!fs.existsSync(LOCAL_DATA_DIR)) {
+      fs.mkdirSync(LOCAL_DATA_DIR, { recursive: true });
+    }
+  } catch (e) {}
+}
+
+function loadLocalFile(filePath, fallback) {
+  try {
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (e) {}
+  return fallback;
+}
+
+function saveLocalFile(filePath, data) {
+  try {
+    ensureDataDir();
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {}
+}
+
+// In-Memory / File Storage Fallback
+let memoryPortfolioData = loadLocalFile(LOCAL_DATA_FILE, null);
 let memoryPasscode = process.env.ADMIN_PASSCODE || 'kma2026';
-let memoryBookings = [
-  {
-    id: 'book-1',
-    name: 'Sarah & Omar',
-    phone: '+20 101 234 5678',
-    email: 'sarah.omar@gmail.com',
-    eventType: 'wedding',
-    eventDate: '2026-10-15',
-    location: 'Four Seasons Nile Plaza • Cairo',
-    message: 'We are planning a full royal wedding and would love to have KMA cover our special day with 4K cameras, drone sweeps, and a same-day edit.',
-    createdAt: '2026-09-14T18:20:00.000Z',
-    status: 'new'
-  },
-  {
-    id: 'book-2',
-    name: 'Nour & Karim',
-    phone: '+20 112 987 6543',
-    email: 'nour.karim@yahoo.com',
-    eventType: 'destination',
-    eventDate: '2026-11-20',
-    location: 'El Gouna Red Sea',
-    message: 'Beachfront destination wedding ceremony and sunset photography session for our intimate gathering.',
-    createdAt: '2026-09-15T09:45:00.000Z',
-    status: 'confirmed'
-  }
-];
+let memoryBookings = loadLocalFile(LOCAL_BOOKINGS_FILE, []);
 
 // Optional MongoDB setup
 let isMongoConnected = false;
@@ -152,6 +159,7 @@ app.post('/api/data', async (req, res) => {
     }
 
     memoryPortfolioData = incomingData;
+    saveLocalFile(LOCAL_DATA_FILE, incomingData);
 
     if (isMongoConnected) {
       await PortfolioModel.findOneAndUpdate(
@@ -164,7 +172,7 @@ app.post('/api/data', async (req, res) => {
     return res.json({
       success: true,
       message: 'Portfolio data updated successfully.',
-      source: isMongoConnected ? 'mongodb' : 'memory',
+      source: isMongoConnected ? 'mongodb' : 'file-memory',
       updatedAt: new Date().toISOString()
     });
   } catch (err) {
@@ -183,7 +191,7 @@ app.get('/api/bookings', async (req, res) => {
       const list = await BookingModel.find({}).sort({ createdAt: -1 });
       return res.json({ success: true, bookings: list, source: 'mongodb' });
     }
-    return res.json({ success: true, bookings: memoryBookings, source: 'memory' });
+    return res.json({ success: true, bookings: memoryBookings, source: 'file-memory' });
   } catch (err) {
     console.error('Error fetching bookings:', err);
     res.status(500).json({ success: false, error: err.message });
@@ -212,6 +220,7 @@ app.post('/api/bookings', async (req, res) => {
     };
 
     memoryBookings = [newBooking, ...memoryBookings];
+    saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
 
     if (isMongoConnected) {
       await BookingModel.create(newBooking);
@@ -228,13 +237,14 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-// PATCH /api/bookings/:id -> Update booking status (e.g. 'confirmed', 'contacted', 'completed', 'cancelled')
+// PATCH /api/bookings/:id -> Update booking status
 app.patch('/api/bookings/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
     memoryBookings = memoryBookings.map((b) => (b.id === id ? { ...b, status } : b));
+    saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
 
     if (isMongoConnected) {
       await BookingModel.findOneAndUpdate({ id }, { status });
@@ -252,6 +262,7 @@ app.delete('/api/bookings/:id', async (req, res) => {
   try {
     const { id } = req.params;
     memoryBookings = memoryBookings.filter((b) => b.id !== id);
+    saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
 
     if (isMongoConnected) {
       await BookingModel.deleteOne({ id });

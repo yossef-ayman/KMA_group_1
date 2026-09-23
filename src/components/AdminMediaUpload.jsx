@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Link2, Check, RefreshCw } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Link2, Check, RefreshCw, Loader2 } from 'lucide-react';
+import { compressImage } from '../utils/imageCompressor';
 
 export const AdminMediaUpload = ({
   label = 'Upload Image / Media',
-  helper = 'Supports PNG, JPG, WebP, SVG (up to 5MB)',
+  helper = 'Supports PNG, JPG, WebP, SVG (Auto-compressed for fast loading)',
   currentUrl = '',
   onUrlChange,
   aspectRatio = 'video', // 'video', 'square', 'document'
@@ -12,6 +13,7 @@ export const AdminMediaUpload = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isUrlMode, setIsUrlMode] = useState(false);
   const [tempUrl, setTempUrl] = useState('');
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleDragOver = (e) => {
@@ -23,22 +25,30 @@ export const AdminMediaUpload = ({
     setIsDragging(false);
   };
 
-  const processFile = (file) => {
+  const processFile = async (file) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       alert('Please upload an image file (PNG, JPG, WebP, SVG).');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size exceeds 5MB. Please choose an optimized image.');
-      return;
-    }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      onUrlChange(event.target.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      setIsCompressing(true);
+      const compressedDataUrl = await compressImage(file, {
+        maxWidth: 1600,
+        maxHeight: 1600,
+        quality: 0.82
+      });
+      onUrlChange(compressedDataUrl);
+    } catch (err) {
+      console.error('Error compressing image:', err);
+      // Fallback to FileReader
+      const reader = new FileReader();
+      reader.onload = (event) => onUrlChange(event.target.result);
+      reader.readAsDataURL(file);
+    } finally {
+      setIsCompressing(false);
+    }
   };
 
   const handleDrop = (e) => {
@@ -125,7 +135,17 @@ export const AdminMediaUpload = ({
             className="hidden"
           />
 
-          {currentUrl ? (
+          {isCompressing ? (
+            <div className="p-8 rounded-2xl border-2 border-amber-600 bg-amber-50/50 text-center flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-7 h-7 text-amber-800 animate-spin" />
+              <p className="text-xs font-bold text-stone-800">
+                Optimizing & Compressing Image...
+              </p>
+              <p className="text-[11px] text-stone-500">
+                Preserving crystal cinema quality while securing persistent storage
+              </p>
+            </div>
+          ) : currentUrl ? (
             <div className="relative p-3 rounded-2xl bg-[#fbf9f6] border border-[#ded0bf] flex flex-col sm:flex-row items-center gap-4">
               <div
                 className={`relative rounded-xl overflow-hidden bg-stone-100 border border-[#e4d8c7] shadow-sm shrink-0 ${aspectClass}`}

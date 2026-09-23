@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { DEFAULT_PORTFOLIO_DATA } from '../data/defaultData';
 import { THEME_PRESETS, BG_TONES } from '../data/themes';
+import { persistData, retrieveData, getLocalSync } from '../utils/storage';
 
-const STORAGE_KEY = 'kma_wedding_media_production_en_v6';
+const STORAGE_KEY = 'kma_portfolio_data_clean_v1';
 const STORAGE_LANG_KEY = 'kma_wedding_lang_v8';
-const STORAGE_BOOKINGS_KEY = 'kma_wedding_bookings_v1';
+const STORAGE_BOOKINGS_KEY = 'kma_wedding_bookings_clean_v2';
 const STORAGE_THEME_KEY = 'kma_wedding_theme_v1';
 const STORAGE_BGTONE_KEY = 'kma_wedding_bgtone_v1';
 const STORAGE_PASSCODE_KEY = 'kma_admin_passcode_v1';
@@ -13,10 +14,12 @@ const SESSION_AUTH_KEY = 'kma_admin_auth_session_v1';
 const PortfolioContext = createContext(null);
 
 export const PortfolioProvider = ({ children }) => {
-  // Purge any legacy keys
+  // Purge any legacy keys containing old mock/dummy data
   if (typeof window !== 'undefined') {
     try {
       [
+        'kma_wedding_media_production_en_v6',
+        'kma_wedding_bookings_v1',
         'mariam_awad_judge_data_v4',
         'awad_partners_firm_data_v1',
         'awad_partners_firm_data_v2',
@@ -31,7 +34,7 @@ export const PortfolioProvider = ({ children }) => {
     } catch (e) {}
   }
 
-  // Language state: English only (per user request to remove Arabic entirely)
+  // Language state: English only
   const [lang, setLang] = useState('en');
 
   // Admin Security & Passcode Gate
@@ -175,57 +178,34 @@ export const PortfolioProvider = ({ children }) => {
     showToast(`Background updated to: ${toneObj?.name || toneId}`);
   };
 
+  // Fast synchronous initial read from localStorage, fallback to clean DEFAULT_PORTFOLIO_DATA
   const [data, setData] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.profile && parsed?.projects && !JSON.stringify(parsed).includes('Awad')) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error('Error loading data from localStorage', e);
-    }
-    return DEFAULT_PORTFOLIO_DATA;
+    return getLocalSync(STORAGE_KEY, DEFAULT_PORTFOLIO_DATA);
   });
 
-  // Client-side Event Bookings submitted by visitors
+  // Async IndexedDB hydration on mount
+  useEffect(() => {
+    let isHydrated = true;
+    retrieveData(STORAGE_KEY, null).then((storedData) => {
+      if (isHydrated && storedData && storedData.profile) {
+        setData((prev) => {
+          const storedTime = storedData.updatedAt ? new Date(storedData.updatedAt).getTime() : 0;
+          const prevTime = prev.updatedAt ? new Date(prev.updatedAt).getTime() : 0;
+          if (storedTime >= prevTime) {
+            return storedData;
+          }
+          return prev;
+        });
+      }
+    });
+    return () => {
+      isHydrated = false;
+    };
+  }, []);
+
+  // Client-side Event Bookings - Clean default: []
   const [bookings, setBookings] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_BOOKINGS_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.error('Error reading bookings from localStorage', e);
-    }
-    return [
-      {
-        id: 'book-1',
-        name: 'Sarah & Omar',
-        phone: '+20 101 234 5678',
-        email: 'sarah.omar@gmail.com',
-        eventType: 'wedding',
-        eventDate: '2026-10-15',
-        location: 'Four Seasons Nile Plaza • Cairo',
-        message: 'We are planning a full royal wedding and would love to have KMA cover our special day with 4K cameras, drone sweeps, and a same-day edit.',
-        createdAt: '2026-09-14T18:20:00.000Z',
-        status: 'new'
-      },
-      {
-        id: 'book-2',
-        name: 'Nour & Karim',
-        phone: '+20 112 987 6543',
-        email: 'nour.karim@yahoo.com',
-        eventType: 'destination',
-        eventDate: '2026-11-20',
-        location: 'El Gouna Red Sea',
-        message: 'Beachfront destination wedding ceremony and sunset photography session for our intimate gathering.',
-        createdAt: '2026-09-15T09:45:00.000Z',
-        status: 'confirmed'
-      }
-    ];
+    return getLocalSync(STORAGE_BOOKINGS_KEY, []);
   });
 
   // Save bookings to localStorage
@@ -437,7 +417,7 @@ export const PortfolioProvider = ({ children }) => {
     }, 3800);
   };
 
-  // Initial Backend Synchronization on mount
+  // Initial Backend Synchronization on mount with timestamp comparison
   useEffect(() => {
     let isMounted = true;
 
@@ -447,16 +427,32 @@ export const PortfolioProvider = ({ children }) => {
         if (!healthRes.ok) throw new Error('API offline');
         if (isMounted) setBackendStatus('connected');
 
-        // Load data from backend (Read-only for visitors)
+        // Load data from backend safely
         const dataRes = await fetch('/api/data');
         if (dataRes.ok) {
           const resJson = await dataRes.json();
           if (resJson.success && resJson.data && resJson.data.profile) {
-            if (isMounted) {
-              setData(resJson.data);
+            const serverData = resJson.data;
+            const currentLocal = getLocalSync(STORAGE_KEY, null);
+
+            const serverTime = serverData.updatedAt ? new Date(serverData.updatedAt).getTime() : 0;
+            const localTime = currentLocal?.updatedAt ? new Date(currentLocal.updatedAt).getTime() : 0;
+
+            // If local data is NEWER than server data, do NOT overwrite! Push local data to server!
+            if (localTime > serverTime) {
               try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(resJson.data));
+                await fetch('/api/data', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(currentLocal)
+                });
               } catch (e) {}
+            } else if (serverTime > localTime && serverTime > 0) {
+              // Server data is newer, adopt it
+              if (isMounted) {
+                setData(serverData);
+                persistData(STORAGE_KEY, serverData);
+              }
             }
           }
         }
@@ -465,7 +461,7 @@ export const PortfolioProvider = ({ children }) => {
         const bookRes = await fetch('/api/bookings');
         if (bookRes.ok) {
           const bookJson = await bookRes.json();
-          if (bookJson.success && Array.isArray(bookJson.bookings) && bookJson.bookings.length > 0) {
+          if (bookJson.success && Array.isArray(bookJson.bookings)) {
             if (isMounted) {
               setBookings(bookJson.bookings);
               try {
@@ -486,83 +482,128 @@ export const PortfolioProvider = ({ children }) => {
     };
   }, []);
 
-  // Save to localStorage & sync to backend API ONLY when authenticated as admin
+  // Save to IndexedDB & LocalStorage and sync to backend API
   useEffect(() => {
+    persistData(STORAGE_KEY, data);
+
+    const syncTimer = setTimeout(async () => {
+      try {
+        await fetch('/api/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch (e) {
+        // Safe offline fallback
+      }
+    }, 600);
+
+    return () => clearTimeout(syncTimer);
+  }, [data]);
+
+  // Instant save & persist helper
+  const saveAllNow = async (explicitData = null) => {
+    const toSave = explicitData || data;
+    const stamped = {
+      ...toSave,
+      updatedAt: new Date().toISOString()
+    };
+    setData(stamped);
+    await persistData(STORAGE_KEY, stamped);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-      console.error('Failed to save to localStorage', e);
-    }
-
-    if (isAdminAuthenticated) {
-      const syncTimer = setTimeout(async () => {
-        try {
-          await fetch('/api/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-          });
-        } catch (e) {
-          // Keep local fallback
-        }
-      }, 1000);
-
-      return () => clearTimeout(syncTimer);
-    }
-  }, [data, isAdminAuthenticated]);
+      await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(stamped)
+      });
+    } catch (e) {}
+    showToast('All changes saved and permanently persisted!');
+    return true;
+  };
 
   // Profile methods
   const updateProfile = (profileUpdates) => {
-    setData((prev) => ({
-      ...prev,
-      profile: {
-        ...prev.profile,
-        ...profileUpdates
-      }
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        profile: {
+          ...prev.profile,
+          ...profileUpdates
+        }
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Studio & Brand profile updated successfully!');
   };
 
   const updateStats = (newStats) => {
-    setData((prev) => ({
-      ...prev,
-      profile: {
-        ...prev.profile,
-        stats: newStats
-      }
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        profile: {
+          ...prev.profile,
+          stats: newStats
+        }
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Key statistics updated successfully');
   };
 
   // Certificate / Permit methods
+  // Certificate / Permit methods
   const addCertificate = (newCert) => {
+    const now = new Date().toISOString();
     const certWithId = {
       ...newCert,
       id: newCert.id || `cert-${Date.now()}`
     };
-    setData((prev) => ({
-      ...prev,
-      certificates: [certWithId, ...prev.certificates]
-    }));
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        certificates: [certWithId, ...prev.certificates]
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Official permit / accreditation added successfully');
     return certWithId;
   };
 
   const updateCertificate = (id, updatedFields) => {
-    setData((prev) => ({
-      ...prev,
-      certificates: prev.certificates.map((cert) =>
-        cert.id === id ? { ...cert, ...updatedFields } : cert
-      )
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        certificates: prev.certificates.map((cert) =>
+          cert.id === id ? { ...cert, ...updatedFields } : cert
+        )
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Accreditation saved successfully');
   };
 
   const deleteCertificate = (id) => {
-    setData((prev) => ({
-      ...prev,
-      certificates: prev.certificates.filter((c) => c.id !== id)
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        certificates: prev.certificates.filter((c) => c.id !== id)
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     if (editingCertId === id) {
       setEditingCertId(null);
     }
@@ -579,112 +620,180 @@ export const PortfolioProvider = ({ children }) => {
 
   // Project methods
   const addProject = (newProject) => {
+    const now = new Date().toISOString();
     const projectWithId = {
       ...newProject,
       id: newProject.id || `proj-${Date.now()}`
     };
-    setData((prev) => ({
-      ...prev,
-      projects: [projectWithId, ...prev.projects]
-    }));
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        projects: [projectWithId, ...prev.projects]
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Film / Project added successfully');
     return projectWithId;
   };
 
   const updateProject = (id, updatedFields) => {
-    setData((prev) => ({
-      ...prev,
-      projects: prev.projects.map((proj) =>
-        proj.id === id ? { ...proj, ...updatedFields } : proj
-      )
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        projects: prev.projects.map((proj) =>
+          proj.id === id ? { ...proj, ...updatedFields } : proj
+        )
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Film details updated successfully');
   };
 
   const deleteProject = (id) => {
-    setData((prev) => ({
-      ...prev,
-      projects: prev.projects.filter((p) => p.id !== id)
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        projects: prev.projects.filter((p) => p.id !== id)
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Film removed', 'info');
   };
 
   // Services (Practice Areas) CRUD
   const addService = (newService) => {
+    const now = new Date().toISOString();
     const serviceWithId = {
       ...newService,
       id: newService.id || `service-${Date.now()}`
     };
-    setData((prev) => ({
-      ...prev,
-      practiceAreas: [...(prev.practiceAreas || []), serviceWithId]
-    }));
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        practiceAreas: [...(prev.practiceAreas || []), serviceWithId]
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Service package added successfully');
     return serviceWithId;
   };
 
   const updateService = (id, updatedFields) => {
-    setData((prev) => ({
-      ...prev,
-      practiceAreas: (prev.practiceAreas || []).map((s) =>
-        s.id === id ? { ...s, ...updatedFields } : s
-      )
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        practiceAreas: (prev.practiceAreas || []).map((s) =>
+          s.id === id ? { ...s, ...updatedFields } : s
+        )
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Service package updated successfully');
   };
 
   const deleteService = (id) => {
-    setData((prev) => ({
-      ...prev,
-      practiceAreas: (prev.practiceAreas || []).filter((s) => s.id !== id)
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        practiceAreas: (prev.practiceAreas || []).filter((s) => s.id !== id)
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Service package removed', 'info');
   };
 
   // Milestones CRUD
   const addMilestone = (newMilestone) => {
-    setData((prev) => ({
-      ...prev,
-      milestones: [newMilestone, ...(prev.milestones || [])]
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        milestones: [newMilestone, ...(prev.milestones || [])]
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Milestone added successfully');
   };
 
   const updateMilestone = (index, updatedFields) => {
+    const now = new Date().toISOString();
     setData((prev) => {
       const list = [...(prev.milestones || [])];
       if (list[index]) {
         list[index] = { ...list[index], ...updatedFields };
       }
-      return { ...prev, milestones: list };
+      const updated = { ...prev, updatedAt: now, milestones: list };
+      persistData(STORAGE_KEY, updated);
+      return updated;
     });
     showToast('Milestone updated successfully');
   };
 
   const deleteMilestone = (index) => {
-    setData((prev) => ({
-      ...prev,
-      milestones: (prev.milestones || []).filter((_, i) => i !== index)
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        milestones: (prev.milestones || []).filter((_, i) => i !== index)
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Milestone removed', 'info');
   };
 
   // Skills update
   const updateSkills = (newSkills) => {
-    setData((prev) => ({
-      ...prev,
-      skills: newSkills
-    }));
+    const now = new Date().toISOString();
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        updatedAt: now,
+        skills: newSkills
+      };
+      persistData(STORAGE_KEY, updated);
+      return updated;
+    });
     showToast('Gear & Capabilities updated successfully');
   };
 
   // Reset to default
   const resetToDefault = () => {
-    const confirmMsg = 'Are you sure you want to reset all data to KMA defaults?';
+    const confirmMsg = 'Are you sure you want to reset all data to a clean slate?';
     if (window.confirm(confirmMsg)) {
-      setData(DEFAULT_PORTFOLIO_DATA);
-      localStorage.removeItem(STORAGE_KEY);
-      showToast('Restored default KMA data!', 'info');
+      const cleanData = {
+        ...DEFAULT_PORTFOLIO_DATA,
+        updatedAt: new Date().toISOString()
+      };
+      setData(cleanData);
+      persistData(STORAGE_KEY, cleanData);
+      try {
+        fetch('/api/data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cleanData)
+        });
+      } catch (e) {}
+      showToast('Clean slate restored successfully!', 'info');
     }
   };
 
@@ -711,8 +820,20 @@ export const PortfolioProvider = ({ children }) => {
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target.result);
-        if (parsed.profile && (parsed.certificates || parsed.projects)) {
-          setData(parsed);
+        if (parsed.profile) {
+          const stamped = {
+            ...parsed,
+            updatedAt: new Date().toISOString()
+          };
+          setData(stamped);
+          persistData(STORAGE_KEY, stamped);
+          try {
+            fetch('/api/data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(stamped)
+            });
+          } catch (e) {}
           showToast('Data imported from JSON successfully!');
         } else {
           showToast('Invalid backup file structure.', 'error');
@@ -781,7 +902,8 @@ export const PortfolioProvider = ({ children }) => {
         deleteMilestone,
         // Skills
         updateSkills,
-        // Backup
+        // Backup & Persistence
+        saveAllNow,
         resetToDefault,
         exportDataJSON,
         importDataJSON,

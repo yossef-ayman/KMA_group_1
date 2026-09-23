@@ -62,6 +62,7 @@ export const AdminPage = () => {
     updateMilestone,
     deleteMilestone,
     updateSkills,
+    saveAllNow,
     resetToDefault,
     exportDataJSON,
     importDataJSON,
@@ -207,14 +208,7 @@ export const AdminPage = () => {
     }
   });
 
-  const [statsList, setStatsList] = useState(
-    data.profile.stats || [
-      { value: '+35', label: 'Wedding & Media Films', desc: 'Featured cinema productions & highlights' },
-      { value: '+6', label: 'Years of Filmmaking', desc: 'Specialized in luxury wedding cinema since 2018' },
-      { value: '6', label: 'Premier Luxury Venues', desc: 'Four Seasons, Mena House, Ritz-Carlton & more' },
-      { value: '100%', label: 'Five-Star Client Rating', desc: 'Tailored delivery for distinguished couples' }
-    ]
-  );
+  const [statsList, setStatsList] = useState(data.profile?.stats || []);
 
   useEffect(() => {
     setProfileForm({
@@ -796,6 +790,14 @@ export const AdminPage = () => {
 
             {/* Quick Actions & Security Lock */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => saveAllNow()}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white transition-all text-xs font-bold shadow-sm"
+                title="Immediately persist all edits to IndexedDB, LocalStorage and Server"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save All Changes</span>
+              </button>
               <button
                 onClick={exportDataJSON}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#f6eee4] text-stone-700 hover:text-stone-900 border border-[#ded0bf] transition-colors text-xs font-semibold shadow-sm"
