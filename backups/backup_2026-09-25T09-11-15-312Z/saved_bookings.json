@@ -1,0 +1,28 @@
+[
+  {
+    "id": "book-1790327469509-acc5d3bd",
+    "name": "Integration Test Booking",
+    "phone": "+201099999999",
+    "email": "",
+    "eventType": "wedding",
+    "eventDate": "",
+    "location": "",
+    "message": "Testing MySQL migration readiness",
+    "status": "new",
+    "createdAt": "2026-09-25T09:11:09.509Z",
+    "updatedAt": "2026-09-25T09:11:09.509Z"
+  },
+  {
+    "id": "book-1790322992750-9d325823",
+    "name": "Sarah & Adam Wedding",
+    "phone": "+20 100 123 4567",
+    "email": "",
+    "eventType": "wedding",
+    "eventDate": "",
+    "location": "",
+    "message": "Looking for full cinema 4K package in Cairo.",
+    "status": "new",
+    "createdAt": "2026-09-25T07:56:32.750Z",
+    "updatedAt": "2026-09-25T07:56:32.750Z"
+  }
+]

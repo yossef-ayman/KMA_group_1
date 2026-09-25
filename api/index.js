@@ -9,6 +9,15 @@ import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
+import {
+  initMySQL,
+  isMySQLConnected,
+  portfolioRepo,
+  projectRepo,
+  serviceRepo,
+  bookingRepo,
+  settingRepo
+} from './db/mysql.js';
 
 dotenv.config();
 
@@ -254,7 +263,7 @@ async function initDB() {
 
 // Middleware to ensure DB connection attempt
 app.use(async (req, res, next) => {
-  await initDB();
+  await Promise.allSettled([initMySQL(), initDB()]);
   next();
 });
 
@@ -317,7 +326,28 @@ async function verifyAdminPasscode(inputPasscode) {
     return bcrypt.compare(inputPasscode, process.env.ADMIN_PASSWORD_HASH);
   }
 
-  // 2. Check MongoDB settings if connected
+  // 2. Check MySQL settings if connected
+  if (isMySQLConnected()) {
+    try {
+      const mysqlPasscode = await settingRepo.get('admin_passcode');
+      if (mysqlPasscode) {
+        if (mysqlPasscode.startsWith('$2a$') || mysqlPasscode.startsWith('$2b$')) {
+          return bcrypt.compare(inputPasscode, mysqlPasscode);
+        }
+        // Migrate plaintext setting to bcrypt hash on first successful login
+        if (inputPasscode === mysqlPasscode) {
+          const hash = await bcrypt.hash(inputPasscode, 10);
+          await settingRepo.set('admin_passcode', hash);
+          return true;
+        }
+        return false;
+      }
+    } catch (e) {
+      console.warn('[Backend] MySQL passcode check error:', e.message);
+    }
+  }
+
+  // 3. Check MongoDB settings if connected
   if (isMongoConnected) {
     const setting = await SettingsModel.findOne({ key: 'admin_passcode' });
     if (setting && setting.value) {
@@ -334,7 +364,7 @@ async function verifyAdminPasscode(inputPasscode) {
     }
   }
 
-  // 3. Fallback to memoryPasscode / process.env.ADMIN_PASSCODE
+  // 4. Fallback to memoryPasscode / process.env.ADMIN_PASSCODE
   const expected = process.env.ADMIN_PASSCODE || memoryPasscode;
   if (expected.startsWith('$2a$') || expected.startsWith('$2b$')) {
     return bcrypt.compare(inputPasscode, expected);
@@ -421,10 +451,20 @@ app.post('/api/media/upload', requireAdminAuth, (req, res) => {
 // 7. HEALTH CHECK ROUTE (PUBLIC)
 // ========================================================
 app.get('/api/health', (req, res) => {
+  const mysqlUp = isMySQLConnected();
+  const mongoUp = isMongoConnected;
+  let mode = 'memory-store';
+  if (mysqlUp) mode = 'mysql';
+  else if (mongoUp) mode = 'mongodb-atlas';
+
   res.json({
     status: 'online',
     appName: 'KMA Wedding & Media Production API',
-    mode: isMongoConnected ? 'mongodb-atlas' : 'memory-store',
+    mode,
+    database: {
+      mysql: mysqlUp,
+      mongodb: mongoUp
+    },
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -500,6 +540,10 @@ app.post('/api/auth/change-passcode', requireAdminAuth, async (req, res) => {
     const hashed = await bcrypt.hash(newPasscode, 10);
     memoryPasscode = hashed;
 
+    if (isMySQLConnected()) {
+      await settingRepo.set('admin_passcode', hashed);
+    }
+
     if (isMongoConnected) {
       await SettingsModel.findOneAndUpdate(
         { key: 'admin_passcode' },
@@ -520,6 +564,12 @@ app.post('/api/auth/change-passcode', requireAdminAuth, async (req, res) => {
 // GET /api/data -> Get current portfolio content (PUBLIC)
 app.get('/api/data', async (req, res) => {
   try {
+    if (isMySQLConnected()) {
+      const data = await portfolioRepo.get('kma_portfolio_main');
+      if (data && typeof data === 'object') {
+        return res.json({ success: true, data, source: 'mysql' });
+      }
+    }
     if (isMongoConnected) {
       const doc = await PortfolioModel.findOne({ docId: 'kma_portfolio_main' });
       if (doc && doc.data) {
@@ -548,6 +598,10 @@ app.post('/api/data', requireAdminAuth, async (req, res) => {
     memoryPortfolioData = incomingData;
     saveLocalFile(LOCAL_DATA_FILE, incomingData);
 
+    if (isMySQLConnected()) {
+      await portfolioRepo.save('kma_portfolio_main', incomingData);
+    }
+
     if (isMongoConnected) {
       await PortfolioModel.findOneAndUpdate(
         { docId: 'kma_portfolio_main' },
@@ -556,10 +610,14 @@ app.post('/api/data', requireAdminAuth, async (req, res) => {
       );
     }
 
+    let source = 'file-memory';
+    if (isMySQLConnected()) source = 'mysql';
+    else if (isMongoConnected) source = 'mongodb';
+
     return res.json({
       success: true,
       message: 'Portfolio data updated successfully.',
-      source: isMongoConnected ? 'mongodb' : 'file-memory',
+      source,
       updatedAt: new Date().toISOString()
     });
   } catch (err) {
@@ -574,6 +632,12 @@ app.post('/api/data', requireAdminAuth, async (req, res) => {
 // GET /api/projects -> List all projects (PUBLIC)
 app.get('/api/projects', async (req, res) => {
   try {
+    if (isMySQLConnected()) {
+      const list = await projectRepo.listAll();
+      if (list && list.length > 0) {
+        return res.json({ success: true, count: list.length, data: list, source: 'mysql' });
+      }
+    }
     if (isMongoConnected) {
       const docs = await ProjectModel.find({}).sort({ updatedAt: -1 });
       if (docs && docs.length > 0) {
@@ -596,6 +660,10 @@ app.get('/api/projects', async (req, res) => {
 app.get('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    if (isMySQLConnected()) {
+      const doc = await projectRepo.getById(id);
+      if (doc) return res.json({ success: true, data: doc });
+    }
     if (isMongoConnected) {
       const doc = await ProjectModel.findOne({ id });
       if (doc) return res.json({ success: true, data: doc });
@@ -636,6 +704,11 @@ app.post('/api/projects', requireAdminAuth, async (req, res) => {
     const portfolio = getMemoryPortfolio();
     portfolio.projects = [project, ...portfolio.projects.filter((p) => p.id !== project.id)];
     saveLocalFile(LOCAL_DATA_FILE, portfolio);
+
+    if (isMySQLConnected()) {
+      await projectRepo.create(project);
+      await portfolioRepo.save('kma_portfolio_main', portfolio);
+    }
 
     if (isMongoConnected) {
       await ProjectModel.findOneAndUpdate({ id: project.id }, project, { upsert: true, new: true });
@@ -683,6 +756,11 @@ app.put('/api/projects/:id', requireAdminAuth, async (req, res) => {
     }
     saveLocalFile(LOCAL_DATA_FILE, portfolio);
 
+    if (isMySQLConnected()) {
+      await projectRepo.update(id, updated);
+      await portfolioRepo.save('kma_portfolio_main', portfolio);
+    }
+
     if (isMongoConnected) {
       await ProjectModel.findOneAndUpdate({ id }, updated, { upsert: true, new: true });
       await PortfolioModel.findOneAndUpdate(
@@ -710,6 +788,11 @@ app.delete('/api/projects/:id', requireAdminAuth, async (req, res) => {
     portfolio.projects = portfolio.projects.filter((p) => p.id !== id);
     saveLocalFile(LOCAL_DATA_FILE, portfolio);
 
+    if (isMySQLConnected()) {
+      await projectRepo.delete(id);
+      await portfolioRepo.save('kma_portfolio_main', portfolio);
+    }
+
     if (isMongoConnected) {
       await ProjectModel.deleteOne({ id });
       await PortfolioModel.findOneAndUpdate(
@@ -731,6 +814,12 @@ app.delete('/api/projects/:id', requireAdminAuth, async (req, res) => {
 // GET /api/services -> List all services (PUBLIC)
 app.get('/api/services', async (req, res) => {
   try {
+    if (isMySQLConnected()) {
+      const dbServices = await serviceRepo.listAll();
+      if (dbServices && dbServices.length > 0) {
+        return res.json({ success: true, count: dbServices.length, data: dbServices, source: 'mysql' });
+      }
+    }
     const portfolio = getMemoryPortfolio();
     const services = portfolio.services || portfolio.practiceAreas || [];
     return res.json({ success: true, count: services.length, data: services });
@@ -762,6 +851,11 @@ app.post('/api/services', requireAdminAuth, async (req, res) => {
     portfolio.services = updatedServices;
     portfolio.practiceAreas = updatedServices;
     saveLocalFile(LOCAL_DATA_FILE, portfolio);
+
+    if (isMySQLConnected()) {
+      await serviceRepo.create(newService);
+      await portfolioRepo.save('kma_portfolio_main', portfolio);
+    }
 
     if (isMongoConnected) {
       await PortfolioModel.findOneAndUpdate(
@@ -796,6 +890,11 @@ app.put('/api/services/:id', requireAdminAuth, async (req, res) => {
     portfolio.practiceAreas = updatedServices;
     saveLocalFile(LOCAL_DATA_FILE, portfolio);
 
+    if (isMySQLConnected()) {
+      await serviceRepo.update(id, updates);
+      await portfolioRepo.save('kma_portfolio_main', portfolio);
+    }
+
     if (isMongoConnected) {
       await PortfolioModel.findOneAndUpdate(
         { docId: 'kma_portfolio_main' },
@@ -821,6 +920,11 @@ app.delete('/api/services/:id', requireAdminAuth, async (req, res) => {
     portfolio.practiceAreas = updatedServices;
     saveLocalFile(LOCAL_DATA_FILE, portfolio);
 
+    if (isMySQLConnected()) {
+      await serviceRepo.delete(id);
+      await portfolioRepo.save('kma_portfolio_main', portfolio);
+    }
+
     if (isMongoConnected) {
       await PortfolioModel.findOneAndUpdate(
         { docId: 'kma_portfolio_main' },
@@ -841,6 +945,10 @@ app.delete('/api/services/:id', requireAdminAuth, async (req, res) => {
 // GET /api/bookings -> Get all visitor bookings (REQUIRES ADMIN AUTH)
 app.get('/api/bookings', requireAdminAuth, async (req, res) => {
   try {
+    if (isMySQLConnected()) {
+      const list = await bookingRepo.listAll();
+      return res.json({ success: true, bookings: list, source: 'mysql' });
+    }
     if (isMongoConnected) {
       const list = await BookingModel.find({}).sort({ createdAt: -1 });
       return res.json({ success: true, bookings: list, source: 'mongodb' });
@@ -881,6 +989,10 @@ app.post('/api/bookings', bookingLimiter, async (req, res) => {
     memoryBookings = [newBooking, ...memoryBookings];
     saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
 
+    if (isMySQLConnected()) {
+      await bookingRepo.create(newBooking);
+    }
+
     if (isMongoConnected) {
       await BookingModel.create(newBooking);
     }
@@ -912,6 +1024,10 @@ app.patch('/api/bookings/:id/status', requireAdminAuth, async (req, res) => {
     );
     saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
 
+    if (isMySQLConnected()) {
+      await bookingRepo.updateStatus(id, status);
+    }
+
     if (isMongoConnected) {
       await BookingModel.findOneAndUpdate({ id }, { status, updatedAt: now });
     }
@@ -935,6 +1051,10 @@ app.patch('/api/bookings/:id', requireAdminAuth, async (req, res) => {
     );
     saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
 
+    if (isMySQLConnected()) {
+      await bookingRepo.updateStatus(id, status);
+    }
+
     if (isMongoConnected) {
       await BookingModel.findOneAndUpdate({ id }, { status, updatedAt: now });
     }
@@ -952,6 +1072,10 @@ app.delete('/api/bookings/:id', requireAdminAuth, async (req, res) => {
     const { id } = req.params;
     memoryBookings = memoryBookings.filter((b) => b.id !== id);
     saveLocalFile(LOCAL_BOOKINGS_FILE, memoryBookings);
+
+    if (isMySQLConnected()) {
+      await bookingRepo.delete(id);
+    }
 
     if (isMongoConnected) {
       await BookingModel.deleteOne({ id });

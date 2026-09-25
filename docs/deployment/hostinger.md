@@ -12,7 +12,7 @@ This document details the production deployment architecture, configuration, and
 * **Node.js Runtime**: Node.js `v18.x`, `v20.x`, or `v22.x` (LTS recommended).
 * **Package Manager**: npm `v9+` or `v10+`.
 * **Process Manager**: PM2 (recommended for VPS) or Hostinger Application Manager (for Cloud/cPanel).
-* **Database**: MongoDB Atlas Cluster (Free M0 or Dedicated M10+) or Hostinger self-hosted MongoDB instance.
+* **Database**: Hostinger MySQL 8.0 / MariaDB (native, no third-party cloud database required). MongoDB Atlas optional fallback.
 * **Domain & DNS**: `kmawedding.com` (or production domain) pointing to the Hostinger server IP via A records.
 * **SSL / TLS**: Let's Encrypt SSL certificate (HTTPS enforced).
 * **RAM / CPU**: Minimum 1 vCPU and 1 GB RAM (2 GB+ recommended for media production workloads).
@@ -34,15 +34,15 @@ In production, frontend and backend are unified under a single origin to elimina
                  ┌────────────────┴────────────────┐
                  │                                 │
            GET / (SPA Routes)               GET / POST / PUT ...
-           Static Assets                     /api/*
+           Static Assets                     /api/* & /uploads/*
                  │                                 │
                  ▼                                 ▼
            Vite Build Output               Node.js + Express
              (dist/ directory)                 (server.js)
                                                    │
                                                    ▼
-                                            MongoDB Atlas
-                                           (or local Mongo)
+                                        Hostinger MySQL 8.0 / MariaDB
+                                       (or MongoDB Atlas / Local Store)
 ```
 
 ### Modes of Serving:
@@ -125,8 +125,14 @@ Configure these variables in Hostinger's environment panel or in a secure `.env`
 
 * `NODE_ENV`: Set to `production`.
 * `PORT`: Server port assigned by Hostinger or custom (e.g. `5000`).
-* `MONGODB_URI`: Complete MongoDB connection URI (e.g. `mongodb+srv://<user>:<password>@cluster.mongodb.net/kma_prod?retryWrites=true&w=majority`).
-* `ADMIN_PASSCODE`: Production administrative passcode used to access the `/admin` portal.
+* `DB_HOST`: MySQL host (`127.0.0.1` or `localhost` on Hostinger).
+* `DB_PORT`: MySQL port (`3306`).
+* `DB_USER`: Hostinger database username (e.g. `u123456789_kma_user`).
+* `DB_PASSWORD`: Secure MySQL user password.
+* `DB_NAME`: Hostinger database name (e.g. `u123456789_kma_db`).
+* `ADMIN_PASSCODE` / `ADMIN_PASSWORD_HASH`: Production administrative passcode/hash.
+* `SESSION_SECRET`: Cryptographic session salt for signing cookies.
+* `MONGODB_URI`: (Optional) Legacy MongoDB connection string if fallback is desired.
 * `VITE_API_URL`: Leave blank (or empty string) because frontend and API share the same domain (`/api`).
 
 ---
@@ -135,11 +141,12 @@ Configure these variables in Hostinger's environment panel or in a secure `.env`
 
 > [!IMPORTANT]
 > **STATUS: NOT EXECUTED YET**  
-> Do not execute these steps until the team gives formal authorization to begin Phase 6 / Live Migration.
+> Do not execute these steps until the team gives formal authorization to begin Live Deployment.
 
-- [ ] **Step 1: Provision Hostinger Instance**
+- [ ] **Step 1: Provision Hostinger Instance & MySQL Database**
   - Provision VPS or Cloud Node.js environment on Hostinger.
-  - Verify Node.js v20+ and Git are installed.
+  - Create MySQL database and user in Hostinger panel.
+  - Verify Node.js v20+, MySQL, and Git are ready.
 - [ ] **Step 2: Setup Domain & SSL**
   - Point domain DNS A records to Hostinger IP.
   - Generate Let's Encrypt SSL certificate via Certbot or Hostinger panel.
@@ -150,13 +157,15 @@ Configure these variables in Hostinger's environment panel or in a secure `.env`
   ```
 - [ ] **Step 4: Configure Production Environment**
   - Copy `.env.example` to `.env`.
-  - Fill in production `MONGODB_URI` and secure `ADMIN_PASSCODE`.
-- [ ] **Step 5: Install Dependencies & Build Frontend**
+  - Fill in MySQL credentials (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`), `ADMIN_PASSWORD_HASH`, and `SESSION_SECRET`.
+- [ ] **Step 5: Run Data Migration & Build Frontend**
   ```bash
   npm ci --production=false
+  npm run migrate:mysql
   npm run build
   ```
   - Verify that `dist/` contains `index.html` and assets.
+  - Verify that MySQL tables and data are created.
 - [ ] **Step 6: Launch Node Server with PM2**
   ```bash
   pm2 start server.js --name "kma-production"
@@ -164,7 +173,7 @@ Configure these variables in Hostinger's environment panel or in a secure `.env`
   pm2 startup
   ```
 - [ ] **Step 7: Smoke Test Live Endpoints**
-  - Check `https://kmawedding.com/api/health` -> returns `{ status: "online", mode: "mongodb-atlas" }`.
+  - Check `https://kmawedding.com/api/health` -> returns `{ status: "online", mode: "mysql", database: { mysql: true } }`.
   - Check `https://kmawedding.com/` -> renders public portfolio showcase.
   - Check `https://kmawedding.com/admin` -> renders Admin login with passcode prompt.
-  - Check `https://kmawedding.com/api/data` -> returns production portfolio data.
+  - Check `https://kmawedding.com/api/data` -> returns production portfolio data from MySQL.

@@ -23,8 +23,12 @@ The KMA Media Production platform is designed as a unified single-origin archite
                                                      │
                                        ┌─────────────┴─────────────┐
                                        │                           │
-                                 MongoDB Atlas               Local Filesystem
-                             (Production Database)        (uploads/ & data/)
+                               Hostinger MySQL 8.0              Local Filesystem
+                              (Production Database)        (uploads/ & data/)
+                                       │
+                                (Optional Fallback)
+                                       │
+                                 MongoDB Atlas
 ```
 
 ---
@@ -49,8 +53,15 @@ NODE_ENV=production
 # Internal Node Server Port
 PORT=5000
 
-# MongoDB Atlas Connection URI
-MONGODB_URI=mongodb+srv://<db_user>:<db_password>@cluster0.mongodb.net/kma_production?retryWrites=true&w=majority
+# MySQL Database (Primary for Hostinger)
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=u123456789_kma_user
+DB_PASSWORD=your_secure_db_password
+DB_NAME=u123456789_kma_db
+
+# MongoDB Connection URI (Optional / Legacy Fallback)
+MONGODB_URI=
 
 # Bcrypt Hash of Master Administrative Passcode
 ADMIN_PASSWORD_HASH=$2a$10$abcdef... (generate with bcrypt)
@@ -67,13 +78,17 @@ VITE_API_URL=
 
 ---
 
-## 4. Database Setup (MongoDB Atlas)
+## 4. Database Setup (Hostinger MySQL & Migration)
 
-1. Provision an M0 (Free) or M10+ cluster on MongoDB Atlas in your nearest AWS/GCP region (e.g. Frankfurt or Bahrain for Middle East/Egypt visitors).
-2. Create a dedicated database user (e.g. `kma_admin`) with read/write access.
-3. Whitelist the Hostinger server IP address in MongoDB Atlas Network Access.
-4. Set `MONGODB_URI` in `.env`.
-5. Note: The server automatically creates collections (`portfolios`, `projects`, `bookings`, `settings`) on first startup without requiring manual schema creation or destructive migrations.
+1. Create a MySQL database and user in your Hostinger control panel.
+2. Grant all privileges to the user on the database.
+3. Configure `DB_HOST`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` in `.env`.
+4. Run the automated data migration script:
+   ```bash
+   npm run migrate:mysql
+   ```
+5. Tables are created automatically (`portfolio`, `projects`, `project_media`, `services`, `bookings`, `settings`), and source records are migrated with full count verification.
+6. Check `docs/database/mysql_migration.md` for complete schema DDL and details.
 
 ---
 
