@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { DEFAULT_PORTFOLIO_DATA } from '../data/defaultData';
 import { THEME_PRESETS, BG_TONES } from '../data/themes';
 import { persistData, retrieveData, getLocalSync } from '../utils/storage';
+import { normalizeProject, normalizePortfolioData, getProjectCover } from '../utils/projectModel';
+import { portfolioApi } from '../api/portfolioApi';
 
 const STORAGE_KEY = 'kma_portfolio_data_clean_v1';
 const STORAGE_LANG_KEY = 'kma_wedding_lang_v8';
@@ -54,49 +56,69 @@ export const PortfolioProvider = ({ children }) => {
     }
   });
 
+  // Verify server-side session on mount
+  useEffect(() => {
+    portfolioApi.checkAuth().then((res) => {
+      if (res && res.authenticated) {
+        setIsAdminAuthenticated(true);
+        try {
+          sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
+        } catch (e) {}
+      } else {
+        setIsAdminAuthenticated(false);
+        try {
+          sessionStorage.removeItem(SESSION_AUTH_KEY);
+        } catch (e) {}
+      }
+    }).catch(() => {
+      // offline: preserve existing state
+    });
+  }, []);
+
   // Backend Connectivity Status: 'connecting' | 'connected' | 'offline'
   const [backendStatus, setBackendStatus] = useState('connecting');
 
   const loginAdmin = async (inputPasscode) => {
-    // Attempt backend verification first
+    // Attempt backend verification first (sets secure HTTP-only cookie)
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode: inputPasscode })
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.authenticated) {
-          setIsAdminAuthenticated(true);
-          try {
-            sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
-          } catch (e) {}
-          showToast('Admin session authenticated successfully!');
-          return true;
-        }
+      const json = await portfolioApi.login(inputPasscode);
+      if (json && json.authenticated) {
+        setIsAdminAuthenticated(true);
+        try {
+          sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
+        } catch (e) {}
+        showToast('Admin session authenticated successfully!');
+        return true;
       }
     } catch (e) {
-      // API offline fallback
+      if (e.status === 401) {
+        showToast('Invalid admin passcode.', 'error');
+        return false;
+      }
+      if (e.status === 429) {
+        showToast(e.message || 'Too many login attempts. Please wait 15 minutes.', 'error');
+        return false;
+      }
     }
 
-    // Local passcode fallback check
-    if (inputPasscode === adminPasscode) {
+    // Local passcode fallback check only if backend is unreachable
+    if (backendStatus === 'offline' && inputPasscode === adminPasscode) {
       setIsAdminAuthenticated(true);
       try {
         sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
       } catch (e) {}
-      showToast('Admin session authenticated successfully!');
+      showToast('Admin session authenticated (offline mode).', 'info');
       return true;
     }
     showToast('Invalid admin passcode.', 'error');
     return false;
   };
 
-  const logoutAdmin = () => {
+  const logoutAdmin = async () => {
     setIsAdminAuthenticated(false);
     try {
       sessionStorage.removeItem(SESSION_AUTH_KEY);
+      await portfolioApi.logout();
     } catch (e) {}
     showToast('Admin session ended.', 'info');
   };
@@ -110,11 +132,7 @@ export const PortfolioProvider = ({ children }) => {
     setAdminPasscode(newCode);
     try {
       localStorage.setItem(STORAGE_PASSCODE_KEY, newCode);
-      await fetch('/api/auth/change-passcode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPasscode: prevCode, newPasscode: newCode })
-      });
+      await portfolioApi.changePasscode(prevCode, newCode);
     } catch (e) {}
     showToast('Admin passcode updated successfully!');
     return true;
@@ -180,7 +198,8 @@ export const PortfolioProvider = ({ children }) => {
 
   // Fast synchronous initial read from localStorage, fallback to clean DEFAULT_PORTFOLIO_DATA
   const [data, setData] = useState(() => {
-    return getLocalSync(STORAGE_KEY, DEFAULT_PORTFOLIO_DATA);
+    const initial = getLocalSync(STORAGE_KEY, DEFAULT_PORTFOLIO_DATA);
+    return normalizePortfolioData(initial);
   });
 
   // Async IndexedDB hydration on mount
@@ -188,11 +207,12 @@ export const PortfolioProvider = ({ children }) => {
     let isHydrated = true;
     retrieveData(STORAGE_KEY, null).then((storedData) => {
       if (isHydrated && storedData && storedData.profile) {
+        const normalized = normalizePortfolioData(storedData);
         setData((prev) => {
-          const storedTime = storedData.updatedAt ? new Date(storedData.updatedAt).getTime() : 0;
+          const storedTime = normalized.updatedAt ? new Date(normalized.updatedAt).getTime() : 0;
           const prevTime = prev.updatedAt ? new Date(prev.updatedAt).getTime() : 0;
           if (storedTime >= prevTime) {
-            return storedData;
+            return normalized;
           }
           return prev;
         });
@@ -218,21 +238,19 @@ export const PortfolioProvider = ({ children }) => {
   }, [bookings]);
 
   const addBooking = async (bookingData) => {
+    const now = new Date().toISOString();
     const newBooking = {
       ...bookingData,
-      id: `book-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      status: 'new'
+      id: bookingData.id || `book-${Date.now()}`,
+      createdAt: bookingData.createdAt || now,
+      updatedAt: now,
+      status: bookingData.status || 'new'
     };
     setBookings((prev) => [newBooking, ...prev]);
 
     // Send to backend API
     try {
-      await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBooking)
-      });
+      await portfolioApi.createBooking(newBooking);
     } catch (e) {
       // Graceful offline fallback
     }
@@ -242,20 +260,17 @@ export const PortfolioProvider = ({ children }) => {
   const deleteBooking = async (id) => {
     setBookings((prev) => prev.filter((b) => b.id !== id));
     try {
-      await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+      await portfolioApi.deleteBooking(id);
     } catch (e) {}
   };
 
   const updateBookingStatus = async (id, newStatus) => {
+    const now = new Date().toISOString();
     setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b))
+      prev.map((b) => (b.id === id ? { ...b, status: newStatus, updatedAt: now } : b))
     );
     try {
-      await fetch(`/api/bookings/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
+      await portfolioApi.updateBookingStatus(id, newStatus);
     } catch (e) {}
   };
 
@@ -423,16 +438,14 @@ export const PortfolioProvider = ({ children }) => {
 
     const initBackend = async () => {
       try {
-        const healthRes = await fetch('/api/health');
-        if (!healthRes.ok) throw new Error('API offline');
+        await portfolioApi.getHealth();
         if (isMounted) setBackendStatus('connected');
 
         // Load data from backend safely
-        const dataRes = await fetch('/api/data');
-        if (dataRes.ok) {
-          const resJson = await dataRes.json();
-          if (resJson.success && resJson.data && resJson.data.profile) {
-            const serverData = resJson.data;
+        try {
+          const resJson = await portfolioApi.getPortfolioData();
+          if (resJson && resJson.success && resJson.data && resJson.data.profile) {
+            const serverData = normalizePortfolioData(resJson.data);
             const currentLocal = getLocalSync(STORAGE_KEY, null);
 
             const serverTime = serverData.updatedAt ? new Date(serverData.updatedAt).getTime() : 0;
@@ -441,11 +454,7 @@ export const PortfolioProvider = ({ children }) => {
             // If local data is NEWER than server data, do NOT overwrite! Push local data to server!
             if (localTime > serverTime) {
               try {
-                await fetch('/api/data', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(currentLocal)
-                });
+                await portfolioApi.savePortfolioData(currentLocal);
               } catch (e) {}
             } else if (serverTime > localTime && serverTime > 0) {
               // Server data is newer, adopt it
@@ -455,13 +464,12 @@ export const PortfolioProvider = ({ children }) => {
               }
             }
           }
-        }
+        } catch (e) {}
 
         // Load bookings from backend
-        const bookRes = await fetch('/api/bookings');
-        if (bookRes.ok) {
-          const bookJson = await bookRes.json();
-          if (bookJson.success && Array.isArray(bookJson.bookings)) {
+        try {
+          const bookJson = await portfolioApi.getBookings();
+          if (bookJson && bookJson.success && Array.isArray(bookJson.bookings)) {
             if (isMounted) {
               setBookings(bookJson.bookings);
               try {
@@ -469,7 +477,7 @@ export const PortfolioProvider = ({ children }) => {
               } catch (e) {}
             }
           }
-        }
+        } catch (e) {}
       } catch (err) {
         if (isMounted) setBackendStatus('offline');
       }
@@ -488,11 +496,7 @@ export const PortfolioProvider = ({ children }) => {
 
     const syncTimer = setTimeout(async () => {
       try {
-        await fetch('/api/data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
+        await portfolioApi.savePortfolioData(data);
       } catch (e) {
         // Safe offline fallback
       }
@@ -511,11 +515,7 @@ export const PortfolioProvider = ({ children }) => {
     setData(stamped);
     await persistData(STORAGE_KEY, stamped);
     try {
-      await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(stamped)
-      });
+      await portfolioApi.savePortfolioData(stamped);
     } catch (e) {}
     showToast('All changes saved and permanently persisted!');
     return true;
@@ -639,21 +639,21 @@ export const PortfolioProvider = ({ children }) => {
   // Project methods
   const addProject = (newProject) => {
     const now = new Date().toISOString();
-    const projectWithId = {
+    const normalized = normalizeProject({
       ...newProject,
       id: newProject.id || `proj-${Date.now()}`
-    };
+    });
     setData((prev) => {
       const updated = {
         ...prev,
         updatedAt: now,
-        projects: [projectWithId, ...prev.projects]
+        projects: [normalized, ...prev.projects]
       };
       persistData(STORAGE_KEY, updated);
       return updated;
     });
     showToast('Film / Project added successfully');
-    return projectWithId;
+    return normalized;
   };
 
   const updateProject = (id, updatedFields) => {
@@ -663,7 +663,7 @@ export const PortfolioProvider = ({ children }) => {
         ...prev,
         updatedAt: now,
         projects: prev.projects.map((proj) =>
-          proj.id === id ? { ...proj, ...updatedFields } : proj
+          proj.id === id ? normalizeProject({ ...proj, ...updatedFields }) : proj
         )
       };
       persistData(STORAGE_KEY, updated);
@@ -694,10 +694,13 @@ export const PortfolioProvider = ({ children }) => {
       id: newService.id || `service-${Date.now()}`
     };
     setData((prev) => {
+      const currentList = prev.services || prev.practiceAreas || [];
+      const nextList = [...currentList, serviceWithId];
       const updated = {
         ...prev,
         updatedAt: now,
-        practiceAreas: [...(prev.practiceAreas || []), serviceWithId]
+        practiceAreas: nextList,
+        services: nextList
       };
       persistData(STORAGE_KEY, updated);
       return updated;
@@ -709,12 +712,15 @@ export const PortfolioProvider = ({ children }) => {
   const updateService = (id, updatedFields) => {
     const now = new Date().toISOString();
     setData((prev) => {
+      const currentList = prev.services || prev.practiceAreas || [];
+      const nextList = currentList.map((s) =>
+        s.id === id ? { ...s, ...updatedFields } : s
+      );
       const updated = {
         ...prev,
         updatedAt: now,
-        practiceAreas: (prev.practiceAreas || []).map((s) =>
-          s.id === id ? { ...s, ...updatedFields } : s
-        )
+        practiceAreas: nextList,
+        services: nextList
       };
       persistData(STORAGE_KEY, updated);
       return updated;
@@ -725,10 +731,13 @@ export const PortfolioProvider = ({ children }) => {
   const deleteService = (id) => {
     const now = new Date().toISOString();
     setData((prev) => {
+      const currentList = prev.services || prev.practiceAreas || [];
+      const nextList = currentList.filter((s) => s.id !== id);
       const updated = {
         ...prev,
         updatedAt: now,
-        practiceAreas: (prev.practiceAreas || []).filter((s) => s.id !== id)
+        practiceAreas: nextList,
+        services: nextList
       };
       persistData(STORAGE_KEY, updated);
       return updated;
@@ -911,6 +920,8 @@ export const PortfolioProvider = ({ children }) => {
         addProject,
         updateProject,
         deleteProject,
+        normalizeProject,
+        getProjectCover,
         // Services
         addService,
         updateService,

@@ -36,10 +36,15 @@ import {
   Key,
   Send,
   Cloud,
-  Code
+  Code,
+  ArrowUp,
+  ArrowDown,
+  Play,
+  Image as ImageIcon
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { AdminMediaUpload } from '../components/AdminMediaUpload';
+import { normalizeProject, createMediaItem, getProjectCover } from '../utils/projectModel';
 
 export const AdminPage = () => {
   const {
@@ -333,6 +338,7 @@ export const AdminPage = () => {
   // ============================================================
   const [editingProjId, setEditingProjId] = useState(null);
   const [isAddingProj, setIsAddingProj] = useState(false);
+  const [extraVideoInput, setExtraVideoInput] = useState('');
   const [projFormData, setProjFormData] = useState({
     title: '',
     category: 'weddings',
@@ -347,11 +353,20 @@ export const AdminPage = () => {
     liveUrl: '',
     githubUrl: '',
     videoUrl: '',
-    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
+    imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800',
+    media: [],
+    coverMediaId: '',
+    status: 'published',
+    isFeatured: false
   });
 
   const startNewProject = () => {
     setEditingProjId(null);
+    setExtraVideoInput('');
+    const initialImg = 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800';
+    const initialVid = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+    const m1 = createMediaItem({ type: 'image', url: initialImg, title: 'Poster Image', sortOrder: 0 });
+    const m2 = createMediaItem({ type: 'video', url: initialVid, title: 'Sample 4K Reel', sortOrder: 1 });
     setProjFormData({
       title: '',
       category: 'weddings',
@@ -365,30 +380,126 @@ export const AdminPage = () => {
       techStack: 'Sony FX3, DJI Cinema Drone, Master Color Grading, Sound Design',
       liveUrl: 'https://vimeo.com/...',
       githubUrl: 'https://instagram.com/kma_wedding',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
+      videoUrl: initialVid,
+      imageUrl: initialImg,
+      media: [m1, m2],
+      coverMediaId: m1.id,
+      status: 'published',
+      isFeatured: false
     });
     setIsAddingProj(true);
   };
 
   const handleEditProjectClick = (proj) => {
-    setEditingProjId(proj.id);
+    const normalized = normalizeProject(proj);
+    setEditingProjId(normalized.id);
     setIsAddingProj(false);
+    setExtraVideoInput('');
     setProjFormData({
-      title: safeVal(proj.title),
-      category: proj.category || 'weddings',
-      categoryLabel: safeVal(proj.categoryLabel) || 'Cinematic Weddings',
-      value: safeVal(proj.value) || '',
-      year: safeVal(proj.year) || '2024',
-      tribunal: safeVal(proj.tribunal) || '',
-      clientType: safeVal(proj.clientType) || '',
-      description: safeVal(proj.description),
-      outcome: safeVal(proj.outcome),
-      techStack: proj.techStack ? proj.techStack.map((s) => safeVal(s)).join(', ') : '',
-      liveUrl: safeVal(proj.liveUrl),
-      githubUrl: safeVal(proj.githubUrl),
-      videoUrl: safeVal(proj.videoUrl),
-      imageUrl: proj.imageUrl || ''
+      title: safeVal(normalized.title),
+      category: normalized.category || 'weddings',
+      categoryLabel: safeVal(normalized.categoryLabel) || 'Cinematic Weddings',
+      value: safeVal(normalized.value) || '',
+      year: safeVal(normalized.year) || '2024',
+      tribunal: safeVal(normalized.tribunal || normalized.location) || '',
+      clientType: safeVal(normalized.clientType || normalized.client) || '',
+      description: safeVal(normalized.description),
+      outcome: safeVal(normalized.outcome),
+      techStack: normalized.techStack ? normalized.techStack.map((s) => safeVal(s)).join(', ') : '',
+      liveUrl: safeVal(normalized.liveUrl),
+      githubUrl: safeVal(normalized.githubUrl),
+      videoUrl: safeVal(normalized.videoUrl),
+      imageUrl: normalized.imageUrl || '',
+      media: normalized.media || [],
+      coverMediaId: normalized.coverMediaId || '',
+      status: normalized.status || 'published',
+      isFeatured: !!normalized.isFeatured
+    });
+  };
+
+  const handleAddImageToProject = (url) => {
+    if (!url || typeof url !== 'string' || !url.trim()) return;
+    const newMedia = createMediaItem({
+      type: 'image',
+      url: url.trim(),
+      title: `Photo ${(projFormData.media || []).length + 1}`,
+      sortOrder: (projFormData.media || []).length
+    });
+    setProjFormData((prev) => {
+      const updatedMedia = [...(prev.media || []), newMedia];
+      const newCoverId = prev.coverMediaId || newMedia.id;
+      return {
+        ...prev,
+        media: updatedMedia,
+        coverMediaId: newCoverId,
+        imageUrl: prev.coverMediaId ? prev.imageUrl : newMedia.url
+      };
+    });
+    showToast('Photo added to project media list');
+  };
+
+  const handleAddVideoToProject = (url) => {
+    if (!url || typeof url !== 'string' || !url.trim()) return;
+    const newMedia = createMediaItem({
+      type: 'video',
+      url: url.trim(),
+      title: `Video ${(projFormData.media || []).filter((m) => m.type === 'video').length + 1}`,
+      sortOrder: (projFormData.media || []).length
+    });
+    setProjFormData((prev) => {
+      const updatedMedia = [...(prev.media || []), newMedia];
+      return {
+        ...prev,
+        media: updatedMedia,
+        videoUrl: prev.videoUrl || newMedia.url
+      };
+    });
+    setExtraVideoInput('');
+    showToast('Video added to project media list');
+  };
+
+  const handleSetCoverMedia = (mediaId) => {
+    setProjFormData((prev) => {
+      const target = (prev.media || []).find((m) => m.id === mediaId);
+      return {
+        ...prev,
+        coverMediaId: mediaId,
+        imageUrl: target?.url || prev.imageUrl
+      };
+    });
+    showToast('Cover media selected');
+  };
+
+  const handleDeleteMediaItem = (mediaId) => {
+    setProjFormData((prev) => {
+      const filtered = (prev.media || []).filter((m) => m.id !== mediaId);
+      const newCoverId =
+        prev.coverMediaId === mediaId
+          ? filtered.find((m) => m.type === 'image')?.id || filtered[0]?.id || ''
+          : prev.coverMediaId;
+      const primaryImg = filtered.find((m) => m.id === newCoverId) || filtered.find((m) => m.type === 'image');
+      const primaryVid = filtered.find((m) => m.type === 'video');
+      return {
+        ...prev,
+        media: filtered.map((m, i) => ({ ...m, sortOrder: i })),
+        coverMediaId: newCoverId,
+        imageUrl: primaryImg?.url || '',
+        videoUrl: primaryVid?.url || ''
+      };
+    });
+    showToast('Media item removed', 'info');
+  };
+
+  const handleMoveMedia = (idx, direction) => {
+    setProjFormData((prev) => {
+      const list = [...(prev.media || [])];
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= list.length) return prev;
+      const temp = list[idx];
+      list[idx] = list[targetIdx];
+      list[targetIdx] = temp;
+      const reindexed = list.map((m, i) => ({ ...m, sortOrder: i }));
+      return { ...prev, media: reindexed };
     });
   };
 
@@ -410,20 +521,28 @@ export const AdminPage = () => {
       value: projFormData.value.trim(),
       year: projFormData.year.trim(),
       tribunal: projFormData.tribunal.trim(),
+      location: projFormData.tribunal.trim(),
       clientType: projFormData.clientType.trim(),
+      client: projFormData.clientType.trim(),
       description: projFormData.description.trim(),
       outcome: projFormData.outcome.trim(),
       techStack: parsedTech,
       liveUrl: projFormData.liveUrl.trim(),
       githubUrl: projFormData.githubUrl.trim(),
       videoUrl: projFormData.videoUrl.trim(),
-      imageUrl: projFormData.imageUrl.trim() || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800'
+      imageUrl: projFormData.imageUrl.trim() || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800',
+      media: projFormData.media || [],
+      coverMediaId: projFormData.coverMediaId || '',
+      status: projFormData.status || 'published',
+      isFeatured: !!projFormData.isFeatured
     };
 
+    const normalized = normalizeProject(payload);
+
     if (editingProjId) {
-      updateProject(editingProjId, payload);
+      updateProject(editingProjId, normalized);
     } else {
-      addProject(payload);
+      addProject(normalized);
     }
     setEditingProjId(null);
     setIsAddingProj(false);
@@ -771,9 +890,9 @@ export const AdminPage = () => {
                   {showPasscode ? "Hide" : "Show"}
                 </button>
               </div>
-              <p className="text-[11px] text-stone-400 mt-2 font-mono">
+              {/* <p className="text-[11px] text-stone-400 mt-2 font-mono">
                 Default PIN: <span className="font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">kma2026</span>
-              </p>
+              </p> */}
             </div>
 
             <button
@@ -1069,7 +1188,7 @@ export const AdminPage = () => {
             </button>
 
             {/* Tab 8: Event Bookings */}
-            <button
+            {/* <button
               onClick={() => setActiveTab('bookings')}
               className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
                 activeTab === 'bookings'
@@ -1086,7 +1205,7 @@ export const AdminPage = () => {
               }`}>
                 {(bookings || []).length}
               </span>
-            </button>
+            </button> */}
 
             {/* Tab 9: Backup & Restore */}
             <button
@@ -1956,38 +2075,56 @@ export const AdminPage = () => {
               </div>
 
               <div className="space-y-3">
-                {data.projects.map((proj) => (
-                  <div
-                    key={proj.id}
-                    onClick={() => handleEditProjectClick(proj)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${
-                      editingProjId === proj.id
-                        ? 'bg-amber-50/80 border-amber-600 ring-2 ring-amber-700/20 shadow-md'
-                        : 'bg-white border-[#ded0bf] hover:border-amber-600 shadow-sm'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#f4ede3] shrink-0 border border-[#e4d8c7]">
-                        <img
-                          src={proj.imageUrl}
-                          alt={safeVal(proj.title)}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.src = "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800";
-                          }}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
-                            {safeVal(proj.categoryLabel) || proj.category}
-                          </span>
-                          <span className="text-[10px] text-stone-500 font-mono">• {proj.year}</span>
+                {data.projects.map((proj) => {
+                  const cover = getProjectCover(proj);
+                  const mediaCount = (proj.media || []).length;
+                  return (
+                    <div
+                      key={proj.id}
+                      onClick={() => handleEditProjectClick(proj)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-4 ${
+                        editingProjId === proj.id
+                          ? 'bg-amber-50/80 border-amber-600 ring-2 ring-amber-700/20 shadow-md'
+                          : 'bg-white border-[#ded0bf] hover:border-amber-600 shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#f4ede3] shrink-0 border border-[#e4d8c7] relative">
+                          <img
+                            src={cover?.url || proj.imageUrl}
+                            alt={safeVal(proj.title)}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800";
+                            }}
+                          />
                         </div>
-                        <h3 className="text-sm font-bold text-stone-900 truncate font-serif mt-0.5">{safeVal(proj.title)}</h3>
-                        <p className="text-xs text-stone-500 truncate">{safeVal(proj.description)}</p>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                              {safeVal(proj.categoryLabel) || proj.category}
+                            </span>
+                            <span className="text-[10px] text-stone-500 font-mono">• {proj.year}</span>
+                            {proj.status === 'draft' && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-700">
+                                Draft
+                              </span>
+                            )}
+                            {proj.isFeatured && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">
+                                ★ Featured
+                              </span>
+                            )}
+                            {mediaCount > 0 && (
+                              <span className="text-[10px] font-semibold text-amber-900 font-mono bg-amber-50 border border-amber-200 px-1.5 rounded">
+                                {mediaCount} {mediaCount === 1 ? 'media' : 'media items'}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-sm font-bold text-stone-900 truncate font-serif mt-0.5">{safeVal(proj.title)}</h3>
+                          <p className="text-xs text-stone-500 truncate">{safeVal(proj.description)}</p>
+                        </div>
                       </div>
-                    </div>
 
                     <div className="flex items-center gap-1 shrink-0">
                       <button
@@ -2014,7 +2151,8 @@ export const AdminPage = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
             </div>
 
@@ -2081,6 +2219,37 @@ export const AdminPage = () => {
                         placeholder="e.g. VIP Cinema Package"
                         className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                        Publishing Status
+                      </label>
+                      <select
+                        value={projFormData.status || 'published'}
+                        onChange={(e) => setProjFormData({ ...projFormData, status: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 font-medium"
+                      >
+                        <option value="published">Published (Visible on Showcase)</option>
+                        <option value="draft">Draft (Hidden from Showcase)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-5">
+                      <label className="relative inline-flex items-center cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={!!projFormData.isFeatured}
+                          onChange={(e) => setProjFormData({ ...projFormData, isFeatured: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-800"></div>
+                        <span className="ml-2.5 text-xs font-bold text-stone-700">
+                          Featured on Hero / Showcase
+                        </span>
+                      </label>
                     </div>
                   </div>
 
@@ -2193,13 +2362,177 @@ export const AdminPage = () => {
                     })()}
                   </div>
 
-                  {/* Media Upload for Project Poster */}
+                  {/* Multi-Media Showcase Album (Multiple Photos & Videos) */}
+                  <div className="p-4 rounded-2xl bg-[#f8f5ef] border border-[#ded0bf] space-y-3.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2.5 border-b border-[#e8dfd5]">
+                      <div>
+                        <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <Camera className="w-3.5 h-3.5 text-amber-800" />
+                          <span>Project Media Album ({(projFormData.media || []).length} items)</span>
+                        </h4>
+                        <p className="text-[11px] text-stone-500">
+                          One project supports multiple photos and videos. Reorder items, select cover, or delete.
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full self-start sm:self-auto">
+                        {(projFormData.media || []).filter((m) => m.type === 'image').length} Photos •{' '}
+                        {(projFormData.media || []).filter((m) => m.type === 'video').length} Videos
+                      </span>
+                    </div>
+
+                    {/* Media Items List */}
+                    {(projFormData.media || []).length === 0 ? (
+                      <p className="text-xs text-stone-500 italic py-2 text-center">
+                        No media added yet. Use the uploaders below to add photos and videos.
+                      </p>
+                    ) : (
+                      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                        {projFormData.media.map((item, idx) => {
+                          const isCover = item.id === projFormData.coverMediaId;
+                          const isVid = item.type === 'video';
+                          return (
+                            <div
+                              key={item.id || idx}
+                              className={`p-2.5 rounded-xl border flex items-center justify-between gap-3 text-xs transition-all ${
+                                isCover
+                                  ? 'bg-amber-50/90 border-amber-600 ring-1 ring-amber-600/30 shadow-xs'
+                                  : 'bg-white border-[#ded0bf]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-12 h-10 rounded-lg overflow-hidden bg-stone-900 shrink-0 relative border border-[#dfd2c0]">
+                                  <img
+                                    src={item.thumbnailUrl || item.url}
+                                    alt={item.title || `Media ${idx + 1}`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.src = '/logo.png';
+                                    }}
+                                  />
+                                  {isVid && (
+                                    <div className="absolute inset-0 bg-stone-950/40 flex items-center justify-center">
+                                      <Play className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span
+                                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm uppercase ${
+                                        isVid
+                                          ? 'bg-stone-900 text-amber-300'
+                                          : 'bg-stone-200 text-stone-800'
+                                      }`}
+                                    >
+                                      {isVid ? 'Video' : 'Photo'}
+                                    </span>
+                                    {isCover && (
+                                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-amber-800 text-white">
+                                        ★ Cover
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-stone-800 truncate font-medium mt-0.5 max-w-[200px]">
+                                    {item.title || (item.url?.startsWith('data:') ? 'Local Image' : item.url)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                {!isCover && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetCoverMedia(item.id)}
+                                    className="px-2 py-1 rounded-lg text-[10px] font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-colors"
+                                    title="Set as Project Cover"
+                                  >
+                                    Set Cover
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveMedia(idx, 'up')}
+                                  className="p-1 text-stone-500 hover:text-stone-900 disabled:opacity-30 disabled:pointer-events-none rounded hover:bg-stone-100 transition-colors"
+                                  title="Move Up"
+                                >
+                                  <ArrowUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === (projFormData.media || []).length - 1}
+                                  onClick={() => handleMoveMedia(idx, 'down')}
+                                  className="p-1 text-stone-500 hover:text-stone-900 disabled:opacity-30 disabled:pointer-events-none rounded hover:bg-stone-100 transition-colors"
+                                  title="Move Down"
+                                >
+                                  <ArrowDown className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteMediaItem(item.id)}
+                                  className="p-1 text-stone-400 hover:text-rose-700 rounded hover:bg-rose-50 transition-colors"
+                                  title="Delete Media Item"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Add Another Video Link Box */}
+                    <div className="pt-2 border-t border-[#e8dfd5] space-y-1.5">
+                      <label className="block text-[11px] font-bold text-stone-700">
+                        + Add Video to Album (YouTube / Vimeo / Google Drive / MP4)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={extraVideoInput}
+                          onChange={(e) => setExtraVideoInput(e.target.value)}
+                          placeholder="Paste video URL..."
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 font-mono focus:outline-none focus:border-amber-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (extraVideoInput.trim()) {
+                              handleAddVideoToProject(extraVideoInput.trim());
+                            }
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-800 hover:bg-amber-900 shrink-0 shadow-xs transition-colors"
+                        >
+                          + Add Video
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Add Another Photo to Album */}
+                    <div className="pt-2 border-t border-[#e8dfd5]">
+                      <AdminMediaUpload
+                        label="+ Add Photo to Album"
+                        helper="Upload an image or paste direct URL to add to this project album"
+                        currentUrl=""
+                        onUrlChange={(url) => {
+                          if (url) handleAddImageToProject(url);
+                        }}
+                        aspectRatio="video"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Primary Cover Image / Poster Quick Selector */}
                   <div>
                     <AdminMediaUpload
-                      label="Cover Image / Film Poster"
-                      helper="Drag & drop or upload the cinematic poster image for this wedding or production"
+                      label="Main Poster / Cover Image (Quick Selector)"
+                      helper="Drag & drop or upload the primary cover photo for this project"
                       currentUrl={projFormData.imageUrl}
-                      onUrlChange={(url) => setProjFormData((prev) => ({ ...prev, imageUrl: url }))}
+                      onUrlChange={(url) => {
+                        setProjFormData((prev) => ({ ...prev, imageUrl: url }));
+                        if (url) handleAddImageToProject(url);
+                      }}
                       aspectRatio="video"
                     />
                   </div>
@@ -3099,6 +3432,10 @@ export const AdminPage = () => {
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                 : b.status === 'contacted'
                                 ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : b.status === 'completed'
+                                ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                                : b.status === 'cancelled'
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300'
                                 : 'bg-amber-100 text-amber-900 border border-amber-300'
                             }`}>
                               {b.status || 'new'}
@@ -3123,6 +3460,8 @@ export const AdminPage = () => {
                           <option value="new">Mark: New</option>
                           <option value="contacted">Mark: Contacted</option>
                           <option value="confirmed">Mark: Confirmed</option>
+                          <option value="completed">Mark: Completed</option>
+                          <option value="cancelled">Mark: Cancelled</option>
                         </select>
 
                         <button

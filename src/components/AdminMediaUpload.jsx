@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Link2, Check, RefreshCw, Loader2 } from 'lucide-react';
 import { compressImage } from '../utils/imageCompressor';
+import { portfolioApi } from '../api/portfolioApi';
 
 export const AdminMediaUpload = ({
   label = 'Upload Image / Media',
-  helper = 'Supports PNG, JPG, WebP, SVG (Auto-compressed for fast loading)',
+  helper = 'Supports PNG, JPG, WebP, SVG, MP4 (Uploaded to secure server storage)',
   currentUrl = '',
   onUrlChange,
   aspectRatio = 'video', // 'video', 'square', 'document'
@@ -27,22 +28,43 @@ export const AdminMediaUpload = ({
 
   const processFile = async (file) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file (PNG, JPG, WebP, SVG).');
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      alert('Please upload an image (PNG, JPG, WebP, SVG) or video file (MP4, WebM).');
       return;
     }
 
     try {
       setIsCompressing(true);
-      const compressedDataUrl = await compressImage(file, {
-        maxWidth: 1600,
-        maxHeight: 1600,
-        quality: 0.82
-      });
-      onUrlChange(compressedDataUrl);
+
+      // Attempt 1: Upload directly to server media storage (/uploads)
+      try {
+        const uploadRes = await portfolioApi.uploadMedia(file);
+        if (uploadRes && uploadRes.success && uploadRes.url) {
+          onUrlChange(uploadRes.url);
+          return;
+        }
+      } catch (uploadErr) {
+        console.warn('Server upload unavailable, falling back to local compression:', uploadErr.message);
+      }
+
+      // Attempt 2: Local fallback (compressed data URL)
+      if (isImage) {
+        const compressedDataUrl = await compressImage(file, {
+          maxWidth: 1600,
+          maxHeight: 1600,
+          quality: 0.82
+        });
+        onUrlChange(compressedDataUrl);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => onUrlChange(event.target.result);
+        reader.readAsDataURL(file);
+      }
     } catch (err) {
-      console.error('Error compressing image:', err);
-      // Fallback to FileReader
+      console.error('Error processing media file:', err);
       const reader = new FileReader();
       reader.onload = (event) => onUrlChange(event.target.result);
       reader.readAsDataURL(file);
