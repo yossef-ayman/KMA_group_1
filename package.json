@@ -10,8 +10,10 @@
     "backup": "node scripts/backup.js",
     "rollback": "node scripts/rollback.js",
     "migrate:mysql": "node scripts/migrate_mongo_to_mysql.js",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "node scripts/build.js",
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy_ftp.js",
+    "package:prod": "node scripts/package_production.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -30,7 +32,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "archiver": "^8.0.0",
     "autoprefixer": "^10.5.5",
+    "basic-ftp": "^6.2.1",
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.19",
     "vite": "^6.2.0"

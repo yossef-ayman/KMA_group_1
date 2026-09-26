@@ -1,11 +1,16 @@
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import express from 'express';
 import app from './api/index.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const PORT = process.env.PORT || 5000;
-const DIST_DIR = path.join(process.cwd(), 'dist');
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+const ROOT_DIR = __dirname;
+const DIST_DIR = path.join(ROOT_DIR, 'dist');
+const UPLOADS_DIR = path.join(ROOT_DIR, 'uploads');
 
 // Ensure uploads directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -21,9 +26,19 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 if (fs.existsSync(DIST_DIR)) {
   app.use(express.static(DIST_DIR));
 
-  // SPA fallback: any non-API and non-uploads GET request serves dist/index.html
+  // Explicit 404 for missing static assets inside /assets
+  app.use('/assets', (req, res) => {
+    res.status(404).type('text/plain').send('Asset not found');
+  });
+
+  // SPA fallback: only serve dist/index.html for page navigation routes (no file extension)
   app.use((req, res, next) => {
-    if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+    if (
+      req.method === 'GET' &&
+      !req.path.startsWith('/api') &&
+      !req.path.startsWith('/uploads') &&
+      !path.extname(req.path)
+    ) {
       return res.sendFile(path.join(DIST_DIR, 'index.html'));
     }
     next();

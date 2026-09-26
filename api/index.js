@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import cookieParser from 'cookie-parser';
@@ -85,10 +86,14 @@ const bookingLimiter = rateLimit({
 // ========================================================
 // 3. PERSISTENT STORAGE DIRECTORIES & STATIC UPLOADS
 // ========================================================
-const LOCAL_DATA_DIR = path.join(process.cwd(), 'data');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT_DIR = path.resolve(__dirname, '..');
+
+const LOCAL_DATA_DIR = path.join(ROOT_DIR, 'data');
 const LOCAL_DATA_FILE = path.join(LOCAL_DATA_DIR, 'saved_portfolio.json');
 const LOCAL_BOOKINGS_FILE = path.join(LOCAL_DATA_DIR, 'saved_bookings.json');
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+const UPLOADS_DIR = path.join(ROOT_DIR, 'uploads');
 
 function ensureDirectories() {
   try {
