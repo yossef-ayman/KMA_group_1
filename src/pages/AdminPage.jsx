@@ -913,7 +913,7 @@ export const AdminPage = () => {
             <div className="space-y-1 text-left">
               <label className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-amber-800" />
-                <span>Admin Email</span>
+                <span> Email</span>
               </label>
               <input
                 type="email"
