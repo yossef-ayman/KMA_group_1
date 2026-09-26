@@ -901,7 +901,7 @@ export const AdminPage = () => {
 
           <div className="space-y-1.5 text-center">
             <h2 className="text-2xl font-bold text-stone-900 font-serif judicial-heading">
-              KMA Studio Admin Portal
+              KMA Studio 
             </h2>
             <p className="text-xs text-stone-500 leading-relaxed max-w-xs mx-auto">
               Please sign in with your administrator email and password to access portfolio management, bookings, and system settings.
