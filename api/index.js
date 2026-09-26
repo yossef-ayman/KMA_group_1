@@ -238,25 +238,37 @@ function requireAdminAuth(req, res, next) {
 }
 
 // ========================================================
-// 6. MEDIA UPLOAD (MULTER CONFIGURATION)
+// 6. MEDIA UPLOAD (CLOUDINARY CONFIGURATION)
 // ========================================================
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary
+const cloudName = (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME || '').trim();
+const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim();
+const apiSecret = (process.env.CLOUDINARY_API_SECRET || '').trim();
+
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({
+    cloudinary_url: process.env.CLOUDINARY_URL.trim()
+  });
+} else {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret
+  });
+}
+
 const allowedMimeTypes = [
   'image/jpeg', 'image/png', 'image/webp', 'image/gif',
   'video/mp4', 'video/webm', 'video/quicktime'
 ];
 
-const uploadStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const safeName = `kma-${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
-    cb(null, safeName);
-  }
-});
+const cloudinaryStorage = multer.memoryStorage(); // Upload directly from memory to Cloudinary
 
 const upload = multer({
-  storage: uploadStorage,
-  limits: { fileSize: 50 * 1024 * 1024 },
+  storage: cloudinaryStorage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB for videos
   fileFilter: (req, file, cb) => {
     if (allowedMimeTypes.includes(file.mimetype.toLowerCase())) {
       cb(null, true);
@@ -266,23 +278,70 @@ const upload = multer({
   }
 });
 
-// POST /api/media/upload
+// POST /api/media/upload — Upload directly to Cloudinary
 app.post('/api/media/upload', requireAdminAuth, (req, res) => {
-  upload.single('file')(req, res, (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) return res.status(400).json({ success: false, message: err.message });
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
 
-    const fileUrl = `/uploads/${req.file.filename}`;
-    const isVideo = req.file.mimetype.startsWith('video/');
-    return res.status(201).json({
-      success: true,
-      url: fileUrl,
-      type: isVideo ? 'video' : 'image',
-      filename: req.file.filename,
-      size: req.file.size,
-      mimeType: req.file.mimetype,
-      message: 'Media uploaded successfully.'
-    });
+    const isCloudinaryConfigured = Boolean(
+      process.env.CLOUDINARY_URL || (cloudName && apiKey && apiSecret)
+    );
+
+    if (!isCloudinaryConfigured) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cloudinary is not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your .env file.'
+      });
+    }
+
+    try {
+      const isVideo = req.file.mimetype.startsWith('video/');
+      const resourceType = isVideo ? 'video' : 'image';
+      const folder = isVideo ? 'kma_media/videos' : 'kma_media/images';
+
+      // Upload buffer to Cloudinary without incoming transformation to prevent signature issues
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type: resourceType
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        uploadStream.end(req.file.buffer);
+      });
+
+      return res.status(201).json({
+        success: true,
+        url: result.secure_url,
+        type: resourceType,
+        publicId: result.public_id,
+        filename: result.original_filename,
+        size: result.bytes,
+        width: result.width,
+        height: result.height,
+        format: result.format,
+        mimeType: req.file.mimetype,
+        thumbnailUrl: isVideo
+          ? cloudinary.url(result.public_id, { resource_type: 'video', format: 'jpg', transformation: [{ width: 400, crop: 'scale' }] })
+          : cloudinary.url(result.public_id, { transformation: [{ width: 400, crop: 'scale', quality: 'auto', fetch_format: 'auto' }] }),
+        storage: 'cloudinary',
+        message: 'Media uploaded to Cloudinary successfully.'
+      });
+    } catch (cloudErr) {
+      console.error('[Cloudinary] Upload error:', cloudErr);
+      return res.status(500).json({
+        success: false,
+        message: 'Cloudinary upload failed: ' + (cloudErr.message || 'Unknown error'),
+        details: cloudErr.http_code === 401 
+          ? 'Invalid Cloudinary credentials. Please verify your CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in .env.'
+          : undefined
+      });
+    }
   });
 });
 

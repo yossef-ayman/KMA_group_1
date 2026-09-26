@@ -21,6 +21,8 @@ export function isVideoResource(url) {
     trimmed.includes('youtu.be') ||
     trimmed.includes('vimeo.com') ||
     trimmed.includes('dropbox.com') ||
+    trimmed.includes('/video/upload/') ||
+    (trimmed.includes('cloudinary.com') && trimmed.includes('/video/')) ||
     trimmed.endsWith('.mp4') ||
     trimmed.endsWith('.webm') ||
     trimmed.endsWith('.mov') ||
@@ -54,11 +56,22 @@ export function createMediaItem({
   const cleanUrl = typeof url === 'string' ? url.trim() : '';
   const resolvedType = type || (isVideoResource(cleanUrl) ? 'video' : 'image');
 
+  // Automatically extract thumbnail for YouTube videos if none provided
+  let thumb = thumbnailUrl;
+  if (!thumb && (cleanUrl.includes('youtube.com') || cleanUrl.includes('youtu.be'))) {
+    const ytMatch = cleanUrl.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+    );
+    if (ytMatch && ytMatch[1]) {
+      thumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+    }
+  }
+
   return {
     id: id || `media-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
     type: resolvedType,
     url: cleanUrl,
-    thumbnailUrl: thumbnailUrl || (resolvedType === 'image' ? cleanUrl : ''),
+    thumbnailUrl: thumb || (resolvedType === 'image' ? cleanUrl : ''),
     title: title || '',
     sortOrder: typeof sortOrder === 'number' ? sortOrder : 0,
     createdAt: new Date().toISOString()

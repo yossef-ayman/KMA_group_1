@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Link2, Check, RefreshCw, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Video, Link2, Check, RefreshCw, Loader2 } from 'lucide-react';
 import { compressImage } from '../utils/imageCompressor';
 import { portfolioApi } from '../api/portfolioApi';
+import { isVideoResource } from '../utils/projectModel';
 
 export const AdminMediaUpload = ({
   label = 'Upload Image / Media',
-  helper = 'Supports PNG, JPG, WebP, SVG, MP4 (Uploaded to secure server storage)',
+  helper = 'Supports PNG, JPG, WebP, SVG, MP4, WebM, MOV (Uploaded to Cloudinary)',
   currentUrl = '',
   onUrlChange,
   aspectRatio = 'video', // 'video', 'square', 'document'
@@ -16,6 +17,8 @@ export const AdminMediaUpload = ({
   const [tempUrl, setTempUrl] = useState('');
   const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef(null);
+
+  const isCurrentVideo = isVideoResource(currentUrl);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -32,42 +35,23 @@ export const AdminMediaUpload = ({
     const isVideo = file.type.startsWith('video/');
 
     if (!isImage && !isVideo) {
-      alert('Please upload an image (PNG, JPG, WebP, SVG) or video file (MP4, WebM).');
+      alert('Please upload an image (PNG, JPG, WebP, SVG) or video file (MP4, WebM, MOV).');
       return;
     }
 
     try {
       setIsCompressing(true);
 
-      // Attempt 1: Upload directly to server media storage (/uploads)
-      try {
-        const uploadRes = await portfolioApi.uploadMedia(file);
-        if (uploadRes && uploadRes.success && uploadRes.url) {
-          onUrlChange(uploadRes.url);
-          return;
-        }
-      } catch (uploadErr) {
-        console.warn('Server upload unavailable, falling back to local compression:', uploadErr.message);
+      // Upload directly to Cloudinary via server API
+      const uploadRes = await portfolioApi.uploadMedia(file);
+      if (uploadRes && uploadRes.success && uploadRes.url) {
+        onUrlChange(uploadRes.url);
+        return;
       }
-
-      // Attempt 2: Local fallback (compressed data URL)
-      if (isImage) {
-        const compressedDataUrl = await compressImage(file, {
-          maxWidth: 1600,
-          maxHeight: 1600,
-          quality: 0.82
-        });
-        onUrlChange(compressedDataUrl);
-      } else {
-        const reader = new FileReader();
-        reader.onload = (event) => onUrlChange(event.target.result);
-        reader.readAsDataURL(file);
-      }
-    } catch (err) {
-      console.error('Error processing media file:', err);
-      const reader = new FileReader();
-      reader.onload = (event) => onUrlChange(event.target.result);
-      reader.readAsDataURL(file);
+      throw new Error(uploadRes?.message || 'Upload failed');
+    } catch (uploadErr) {
+      console.error('Media upload error:', uploadErr);
+      alert('Upload failed: ' + (uploadErr.message || 'Please check server and Cloudinary configuration.'));
     } finally {
       setIsCompressing(false);
     }
@@ -153,7 +137,7 @@ export const AdminMediaUpload = ({
             type="file"
             ref={fileInputRef}
             onChange={handleFileInput}
-            accept="image/*"
+            accept="image/*,video/mp4,video/webm,video/quicktime"
             className="hidden"
           />
 
@@ -161,7 +145,7 @@ export const AdminMediaUpload = ({
             <div className="p-8 rounded-2xl border-2 border-amber-600 bg-amber-50/50 text-center flex flex-col items-center justify-center space-y-2">
               <Loader2 className="w-7 h-7 text-amber-800 animate-spin" />
               <p className="text-xs font-bold text-stone-800">
-                Optimizing & Compressing Image...
+                Uploading to Cloudinary...
               </p>
               <p className="text-[11px] text-stone-500">
                 Preserving crystal cinema quality while securing persistent storage
@@ -170,23 +154,31 @@ export const AdminMediaUpload = ({
           ) : currentUrl ? (
             <div className="relative p-3 rounded-2xl bg-[#fbf9f6] border border-[#ded0bf] flex flex-col sm:flex-row items-center gap-4">
               <div
-                className={`relative rounded-xl overflow-hidden bg-stone-100 border border-[#e4d8c7] shadow-sm shrink-0 ${aspectClass}`}
+                className={`relative rounded-xl overflow-hidden bg-stone-900 border border-[#e4d8c7] shadow-sm shrink-0 ${aspectClass}`}
               >
-                <img
-                  src={currentUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src =
-                      'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800';
-                  }}
-                />
+                {isCurrentVideo ? (
+                  <video
+                    src={currentUrl}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={currentUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src =
+                        'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=800';
+                    }}
+                  />
+                )}
               </div>
 
               <div className="space-y-2 text-center sm:text-left flex-1 min-w-0">
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-emerald-700">
                   <Check className="w-4 h-4" />
-                  <span>Media Attached & Active</span>
+                  <span>{isCurrentVideo ? 'Video Attached & Ready' : 'Media Attached & Active'}</span>
                 </div>
                 <p className="text-[11px] text-stone-500 truncate max-w-full font-mono">
                   {currentUrl.startsWith('data:') ? 'Base64 Local Image' : currentUrl}
@@ -199,7 +191,7 @@ export const AdminMediaUpload = ({
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-[#f4ede3] text-stone-800 text-xs font-bold border border-[#ded0bf] shadow-sm transition-colors"
                   >
                     <RefreshCw className="w-3 h-3 text-amber-800" />
-                    <span>Replace Image</span>
+                    <span>{isCurrentVideo ? 'Replace Video' : 'Replace Media'}</span>
                   </button>
 
                   <button

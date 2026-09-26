@@ -329,10 +329,8 @@ export const projectRepo = {
   async update(id, updates) {
     if (!pool) return null;
     const existing = await this.getById(id);
-    if (!existing) return null;
-
     const merged = {
-      ...existing,
+      ...(existing || {}),
       ...updates,
       id
     };

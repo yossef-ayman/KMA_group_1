@@ -448,20 +448,39 @@ export const AdminPage = () => {
     showToast('Photo added to project media list');
   };
 
+  const handleVideoUrlChange = (url) => {
+    setProjFormData((prev) => {
+      const next = { ...prev, videoUrl: url };
+      if (url && (url.includes('youtube.com') || url.includes('youtu.be'))) {
+        const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        if (ytMatch && ytMatch[1]) {
+          const ytThumb = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+          if (!prev.imageUrl || prev.imageUrl.includes('unsplash.com')) {
+            next.imageUrl = ytThumb;
+          }
+        }
+      }
+      return next;
+    });
+  };
+
   const handleAddVideoToProject = (url) => {
     if (!url || typeof url !== 'string' || !url.trim()) return;
+    const cleanUrl = url.trim();
     const newMedia = createMediaItem({
       type: 'video',
-      url: url.trim(),
+      url: cleanUrl,
       title: `Video ${(projFormData.media || []).filter((m) => m.type === 'video').length + 1}`,
       sortOrder: (projFormData.media || []).length
     });
     setProjFormData((prev) => {
       const updatedMedia = [...(prev.media || []), newMedia];
+      const needsCover = !prev.imageUrl || prev.imageUrl.includes('unsplash.com');
       return {
         ...prev,
         media: updatedMedia,
-        videoUrl: prev.videoUrl || newMedia.url
+        videoUrl: prev.videoUrl || newMedia.url,
+        imageUrl: (needsCover && newMedia.thumbnailUrl) ? newMedia.thumbnailUrl : prev.imageUrl
       };
     });
     setExtraVideoInput('');
@@ -525,6 +544,7 @@ export const AdminPage = () => {
       : [];
 
     const payload = {
+      ...(editingProjId ? { id: editingProjId } : {}),
       title: projFormData.title.trim(),
       category: projFormData.category,
       categoryLabel: projFormData.categoryLabel.trim(),
@@ -2354,18 +2374,34 @@ export const AdminPage = () => {
 
                   <div>
                     <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                      Video Link (Google Drive / YouTube / Vimeo / MP4)
+                      Featured Film Video (YouTube / Vimeo / Google Drive / MP4)
                     </label>
                     <input
                       type="url"
                       value={projFormData.videoUrl}
-                      onChange={(e) => setProjFormData({ ...projFormData, videoUrl: e.target.value })}
-                      placeholder="e.g. Google Drive link, YouTube, Vimeo, or MP4..."
+                      onChange={(e) => handleVideoUrlChange(e.target.value)}
+                      placeholder="e.g. https://www.youtube.com/watch?v=... or Vimeo, Google Drive, MP4"
                       className="w-full px-3 py-2 rounded-xl bg-[#fbf9f6] border border-[#ded0bf] text-xs text-stone-900 focus:outline-none focus:border-amber-700 font-mono"
                     />
                     <p className="text-[10px] text-stone-500 mt-1">
-                      💡 100% Free & Zero Server Storage: Paste your video share link from <span className="font-bold text-amber-900">Google Drive</span>, <span className="font-bold text-amber-900">YouTube</span>, <span className="font-bold text-amber-900">Vimeo</span>, or a direct MP4 stream. Visitors can watch immediately in full cinema quality!
+                      💡 Paste any video link: <span className="font-bold text-amber-900">YouTube</span> (e.g. https://www.youtube.com/watch?v=_ILxvuTRQzU), <span className="font-bold text-amber-900">Vimeo</span>, or <span className="font-bold text-amber-900">Google Drive</span>. YouTube thumbnails are automatically extracted for you!
                     </p>
+
+                    {/* Or Direct Video File Upload to Cloudinary */}
+                    <div className="mt-3 pt-3 border-t border-[#ded0bf]/60">
+                      <AdminMediaUpload
+                        label="Or Upload Video File Directly (MP4 / WebM / MOV to Cloudinary)"
+                        helper="Upload 4K/HD video file directly to your Cloudinary storage"
+                        currentUrl={projFormData.videoUrl?.includes('res.cloudinary.com') ? projFormData.videoUrl : ''}
+                        onUrlChange={(url) => {
+                          if (url) {
+                            handleVideoUrlChange(url);
+                            handleAddVideoToProject(url);
+                          }
+                        }}
+                        aspectRatio="video"
+                      />
+                    </div>
 
                     {/* WOW Live Video Test Preview in Admin */}
                     {projFormData.videoUrl && (() => {
@@ -2528,17 +2564,17 @@ export const AdminPage = () => {
                       </div>
                     )}
 
-                    {/* Add Another Video Link Box */}
-                    <div className="pt-2 border-t border-[#e8dfd5] space-y-1.5">
+                    {/* Add Another Video (Link or File Upload) */}
+                    <div className="pt-2 border-t border-[#e8dfd5] space-y-2">
                       <label className="block text-[11px] font-bold text-stone-700">
-                        + Add Video to Album (YouTube / Vimeo / Google Drive / MP4)
+                        + Add Video to Album (Paste YouTube / Vimeo / MP4 Link or Upload File)
                       </label>
                       <div className="flex gap-2">
                         <input
                           type="url"
                           value={extraVideoInput}
                           onChange={(e) => setExtraVideoInput(e.target.value)}
-                          placeholder="Paste video URL..."
+                          placeholder="Paste YouTube (e.g. https://www.youtube.com/watch?v=...), Vimeo, or MP4 link..."
                           className="flex-1 px-3 py-1.5 rounded-xl bg-white border border-[#ded0bf] text-xs text-stone-900 font-mono focus:outline-none focus:border-amber-700"
                         />
                         <button
@@ -2550,8 +2586,20 @@ export const AdminPage = () => {
                           }}
                           className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-amber-800 hover:bg-amber-900 shrink-0 shadow-xs transition-colors"
                         >
-                          + Add Video
+                          + Add Link
                         </button>
+                      </div>
+
+                      <div className="pt-1">
+                        <AdminMediaUpload
+                          label="+ Upload Video File to Album"
+                          helper="Upload an MP4, WebM, or MOV video file directly to Cloudinary"
+                          currentUrl=""
+                          onUrlChange={(url) => {
+                            if (url) handleAddVideoToProject(url);
+                          }}
+                          aspectRatio="video"
+                        />
                       </div>
                     </div>
 

@@ -134,7 +134,8 @@ export const PortfolioProvider = ({ children }) => {
     }
 
     // Local admin fallback check only if backend is unreachable or offline
-    
+    const defaultPass = 'kma2026';
+    const isDefaultAdmin = (email.trim().toLowerCase() === 'admin@kma.com' && password === defaultPass);
 
     if (isDefaultAdmin) {
       setIsAdminAuthenticated(true);
@@ -691,7 +692,7 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // Project methods
-  const addProject = (newProject) => {
+  const addProject = async (newProject) => {
     const now = new Date().toISOString();
     const normalized = normalizeProject({
       ...newProject,
@@ -706,27 +707,53 @@ export const PortfolioProvider = ({ children }) => {
       persistData(STORAGE_KEY, updated);
       return updated;
     });
+
+    // Persist to MySQL via granular REST API
+    try {
+      await portfolioApi.createProject(normalized);
+    } catch (e) {
+      console.warn('Failed to save project to database:', e.message);
+    }
+
     showToast('Film / Project added successfully');
     return normalized;
   };
 
-  const updateProject = (id, updatedFields) => {
+  const updateProject = async (id, updatedFields) => {
     const now = new Date().toISOString();
+    let mergedProject = null;
     setData((prev) => {
+      const exists = (prev.projects || []).some((proj) => proj.id === id);
+      const updatedProjects = exists
+        ? prev.projects.map((proj) => {
+            if (proj.id === id) {
+              mergedProject = normalizeProject({ ...proj, ...updatedFields, id });
+              return mergedProject;
+            }
+            return proj;
+          })
+        : [normalizeProject({ ...updatedFields, id }), ...(prev.projects || [])];
+
       const updated = {
         ...prev,
         updatedAt: now,
-        projects: prev.projects.map((proj) =>
-          proj.id === id ? normalizeProject({ ...proj, ...updatedFields }) : proj
-        )
+        projects: updatedProjects
       };
       persistData(STORAGE_KEY, updated);
       return updated;
     });
+
+    // Persist to MySQL via granular REST API
+    try {
+      await portfolioApi.updateProject(id, mergedProject || { ...updatedFields, id });
+    } catch (e) {
+      console.warn('Failed to update project in database:', e.message);
+    }
+
     showToast('Film details updated successfully');
   };
 
-  const deleteProject = (id) => {
+  const deleteProject = async (id) => {
     const now = new Date().toISOString();
     setData((prev) => {
       const updated = {
@@ -737,11 +764,19 @@ export const PortfolioProvider = ({ children }) => {
       persistData(STORAGE_KEY, updated);
       return updated;
     });
+
+    // Remove from MySQL via granular REST API
+    try {
+      await portfolioApi.deleteProject(id);
+    } catch (e) {
+      console.warn('Failed to delete project from database:', e.message);
+    }
+
     showToast('Film removed', 'info');
   };
 
   // Services (Practice Areas) CRUD
-  const addService = (newService) => {
+  const addService = async (newService) => {
     const now = new Date().toISOString();
     const serviceWithId = {
       ...newService,
@@ -759,11 +794,19 @@ export const PortfolioProvider = ({ children }) => {
       persistData(STORAGE_KEY, updated);
       return updated;
     });
+
+    // Persist to MySQL via granular REST API
+    try {
+      await portfolioApi.createService(serviceWithId);
+    } catch (e) {
+      console.warn('Failed to save service to database:', e.message);
+    }
+
     showToast('Service package added successfully');
     return serviceWithId;
   };
 
-  const updateService = (id, updatedFields) => {
+  const updateService = async (id, updatedFields) => {
     const now = new Date().toISOString();
     setData((prev) => {
       const currentList = prev.services || prev.practiceAreas || [];
@@ -779,10 +822,18 @@ export const PortfolioProvider = ({ children }) => {
       persistData(STORAGE_KEY, updated);
       return updated;
     });
+
+    // Persist to MySQL via granular REST API
+    try {
+      await portfolioApi.updateService(id, updatedFields);
+    } catch (e) {
+      console.warn('Failed to update service in database:', e.message);
+    }
+
     showToast('Service package updated successfully');
   };
 
-  const deleteService = (id) => {
+  const deleteService = async (id) => {
     const now = new Date().toISOString();
     setData((prev) => {
       const currentList = prev.services || prev.practiceAreas || [];
@@ -796,6 +847,14 @@ export const PortfolioProvider = ({ children }) => {
       persistData(STORAGE_KEY, updated);
       return updated;
     });
+
+    // Remove from MySQL via granular REST API
+    try {
+      await portfolioApi.deleteService(id);
+    } catch (e) {
+      console.warn('Failed to delete service from database:', e.message);
+    }
+
     showToast('Service package removed', 'info');
   };
 
